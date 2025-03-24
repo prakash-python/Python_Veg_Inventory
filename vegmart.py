@@ -1,8 +1,3 @@
-print('start the vegmart file running')
-def application(environ, start_response):
-    start_response('200 OK', [('Content-Type', 'text/html')])
-    return [b"Welcome to Veg Mart!"]
-        
 items = ['tomato', 'brinjal', 'potato', 'mirchi']
 price = [20, 25, 40, 30]
 quantity = [10.0, 20.0, 15.0, 20.0]
