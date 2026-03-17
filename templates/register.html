@@ -3,235 +3,576 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - VEGMART</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Sign Up – VEGMART</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green-primary: #16a34a;
+            --green-dark:    #15803d;
+            --green-mid:     #22c55e;
+            --dark:          #111827;
+            --gray-600:      #4b5563;
+            --gray-400:      #9ca3af;
+            --gray-100:      #f3f4f6;
+            --white:         #ffffff;
+            --red:           #dc2626;
+            --radius-lg:     16px;
+            --shadow-xl:     0 20px 60px rgba(0,0,0,.18);
+        }
+
         body {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-100);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .register-container {
-            width: 100%;
-            max-width: 450px;
             padding: 20px;
         }
 
-        .register-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        .auth-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            max-width: 1020px;
+            min-height: 640px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* ── LEFT PANEL ───────────────────────────── */
+        .panel-left {
+            position: relative;
+            background: var(--green-dark);
             overflow: hidden;
         }
 
-        .register-header {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
+        .panel-left img.bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: .4;
         }
 
-        .register-header h1 {
-            font-size: 32px;
+        .panel-left .overlay {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 40px 36px;
+            background: linear-gradient(to top, rgba(21,128,61,.96) 0%, rgba(21,128,61,.25) 55%, transparent 100%);
+        }
+
+        .brand-logo {
+            position: absolute;
+            top: 32px;
+            left: 36px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3;
+        }
+
+        .brand-logo .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--white);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 14px rgba(0,0,0,.2);
+        }
+
+        .brand-logo span {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: 1px;
+        }
+
+        .panel-left .tagline {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.3;
+            margin-bottom: 14px;
+        }
+
+        .panel-left .tagline span { color: #86efac; }
+
+        .panel-left p.sub {
+            color: rgba(255,255,255,.82);
+            font-size: 13.5px;
+            line-height: 1.6;
+            margin-bottom: 26px;
+        }
+
+        .benefit-list { list-style: none; }
+
+        .benefit-list li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,.9);
+            font-size: 13px;
             margin-bottom: 10px;
         }
 
-        .register-header p {
-            margin: 0;
-            opacity: 0.9;
+        .benefit-list li .icon-circle {
+            width: 28px;
+            height: 28px;
+            background: rgba(255,255,255,.18);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
         }
 
-        .register-body {
-            padding: 40px;
+        /* ── RIGHT PANEL ──────────────────────────── */
+        .panel-right {
+            background: var(--white);
+            padding: 40px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .panel-right h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 4px;
         }
 
-        .form-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
+        .panel-right .welcome-sub {
+            color: var(--gray-600);
+            font-size: 13px;
+            margin-bottom: 22px;
         }
 
-        .form-control {
-            border: 2px solid #e0e0e0;
+        /* Flash */
+        .flash-box {
             border-radius: 10px;
-            padding: 12px 15px;
-            font-size: 15px;
-            transition: border-color 0.3s;
+            padding: 11px 14px;
+            font-size: 13px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+        }
+        .flash-success { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; }
+        .flash-error   { background:#fef2f2; border:1px solid #fecaca; color:#dc2626; }
+
+        /* Field */
+        .field { margin-bottom: 14px; }
+
+        .field label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
         }
 
-        .form-control:focus {
-            border-color: #2ecc71;
-            box-shadow: 0 0 0 0.2rem rgba(46, 204, 113, 0.25);
+        .input-wrap { position: relative; }
+
+        .input-wrap i.icon-left {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
+            font-size: 13px;
+            pointer-events: none;
         }
 
-        .btn-register {
+        .input-wrap input {
             width: 100%;
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-            color: white;
-            border: none;
-            padding: 12px;
+            padding: 11px 13px 11px 38px;
+            border: 1.5px solid #e5e7eb;
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13.5px;
+            color: var(--dark);
+            background: var(--white);
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--green-primary);
+            box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+        }
+
+        .input-wrap input.valid   { border-color: #22c55e; }
+        .input-wrap input.invalid { border-color: var(--red); }
+
+        .input-wrap .toggle-pw {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-400);
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 10px;
+            font-size: 13px;
         }
 
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(46, 204, 113, 0.3);
+        .field-msg {
+            font-size: 11.5px;
+            margin-top: 4px;
+            min-height: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .field-msg.ok  { color: #15803d; }
+        .field-msg.err { color: var(--red); }
+
+        /* Password strength */
+        .strength-wrap { margin-top: 6px; }
+
+        .strength-bars {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 4px;
         }
 
-        .login-link {
-            text-align: center;
-            margin-top: 20px;
-            color: #666;
+        .strength-bars span {
+            flex: 1;
+            height: 4px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            transition: background .3s;
         }
 
-        .login-link a {
-            color: #2ecc71;
-            text-decoration: none;
+        .strength-label {
+            font-size: 11px;
+            color: var(--gray-400);
             font-weight: 600;
         }
 
-        .login-link a:hover {
-            text-decoration: underline;
+        /* Two-col grid */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 14px;
         }
 
-        .alert {
-            border-radius: 10px;
-            margin-bottom: 20px;
+        @media (max-width: 480px) { .two-col { grid-template-columns: 1fr; } }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            font-size: 12.5px;
+            color: var(--gray-600);
         }
 
-        .password-strength {
-            margin-top: 8px;
-            font-size: 12px;
+        .checkbox-row input[type="checkbox"] {
+            accent-color: var(--green-primary);
+            width: 15px;
+            height: 15px;
         }
 
-        .strength-bar {
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            margin-top: 5px;
-            overflow: hidden;
+        .btn-submit {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-primary) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
         }
 
-        .strength-bar-fill {
-            height: 100%;
-            background: #e74c3c;
-            width: 0%;
-            transition: width 0.3s, background-color 0.3s;
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(22,163,74,.35);
+        }
+
+        .login-note {
+            text-align: center;
+            font-size: 13px;
+            color: var(--gray-600);
+            margin-top: 16px;
+        }
+
+        .login-note a {
+            color: var(--green-primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .login-note a:hover { text-decoration: underline; }
+
+        @media (max-width: 700px) {
+            .auth-card { grid-template-columns: 1fr; }
+            .panel-left { min-height: 200px; }
+            .panel-right { padding: 28px 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="register-container">
-        <div class="register-card">
-            <div class="register-header">
-                <h1>🥬 VEGMART</h1>
-                <p>Create Your Account</p>
-            </div>
-            
-            <div class="register-body">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+<div class="auth-card">
 
-                <form method="POST">
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-user"></i> Username
-                        </label>
-                        <input type="text" class="form-control" name="username" required placeholder="Choose a username" minlength="3">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <input type="email" class="form-control" name="email" required placeholder="your@email.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" class="form-control" name="password" id="password" required placeholder="At least 6 characters" minlength="6" onkeyup="checkStrength()">
-                        <div class="password-strength">
-                            <div class="strength-bar">
-                                <div class="strength-bar-fill" id="strengthBar"></div>
-                            </div>
-                            <small id="strengthText" style="color: #e74c3c;">Weak password</small>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-lock"></i> Confirm Password
-                        </label>
-                        <input type="password" class="form-control" name="confirm_password" required placeholder="Re-enter password" minlength="6">
-                    </div>
-
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="terms" required>
-                        <label class="form-check-label" for="terms">
-                            I agree to the Terms & Conditions
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn-register">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-                </form>
-
-                <div class="login-link">
-                    Already have an account? <a href="{{ url_for('login') }}">Login here</a>
-                </div>
-            </div>
+    <!-- LEFT PANEL -->
+    <div class="panel-left">
+        <img class="bg-img" src="/static/images/store_panel.png" alt="Fresh Vegetables">
+        <div class="brand-logo">
+            <div class="logo-icon">🥬</div>
+            <span>VEGMART</span>
+        </div>
+        <div class="overlay">
+            <p class="tagline">Join <span>10,000+</span><br>Happy Customers</p>
+            <p class="sub">Get fresh vegetables delivered to your door daily. Farm-to-table quality at unbeatable prices.</p>
+            <ul class="benefit-list">
+                <li>
+                    <span class="icon-circle"><i class="fas fa-check"></i></span>
+                    Free delivery on orders above ₹200
+                </li>
+                <li>
+                    <span class="icon-circle"><i class="fas fa-leaf"></i></span>
+                    100% organic & pesticide-free
+                </li>
+                <li>
+                    <span class="icon-circle"><i class="fas fa-undo"></i></span>
+                    Easy returns within 24 hours
+                </li>
+                <li>
+                    <span class="icon-circle"><i class="fas fa-lock"></i></span>
+                    Secure & encrypted payments
+                </li>
+            </ul>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        function checkStrength() {
-            const password = document.getElementById('password').value;
-            const strengthBar = document.getElementById('strengthBar');
-            const strengthText = document.getElementById('strengthText');
-            
-            let strength = 0;
-            
-            if (password.length >= 6) strength++;
-            if (password.length >= 8) strength++;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-            if (/\d/.test(password)) strength++;
-            if (/[^a-zA-Z\d]/.test(password)) strength++;
-            
-            const percentages = [0, 20, 40, 60, 80, 100];
-            const colors = ['#e74c3c', '#e67e22', '#f39c12', '#2ecc71', '#27ae60', '#16a085'];
-            const texts = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong', 'Excellent'];
-            
-            strengthBar.style.width = percentages[strength] + '%';
-            strengthBar.style.backgroundColor = colors[strength];
-            strengthText.textContent = texts[strength];
-            strengthText.style.color = colors[strength];
-        }
-    </script>
+    <!-- RIGHT PANEL -->
+    <div class="panel-right">
+        <h2>Create Your Account 🌱</h2>
+        <p class="welcome-sub">Start shopping fresh vegetables today</p>
+
+        <!-- Flash handled by SweetAlert2 -->
+
+        <form method="POST" id="registerForm" novalidate onsubmit="return validateForm()">
+
+            <div class="two-col">
+                <!-- Full Name -->
+                <div class="field">
+                    <label for="fullname">Full Name</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user icon-left"></i>
+                        <input type="text" id="fullname" name="fullname" placeholder="e.g. Ravi Kumar"
+                               oninput="validateName(this)" required>
+                    </div>
+                    <div class="field-msg" id="msg-name"></div>
+                </div>
+
+                <!-- Username -->
+                <div class="field">
+                    <label for="username">Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-at icon-left"></i>
+                        <input type="text" id="username" name="username" placeholder="e.g. ravi_k"
+                               oninput="validateUsername(this)" required>
+                    </div>
+                    <div class="field-msg" id="msg-username"></div>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+                <label for="email">Email Address</label>
+                <div class="input-wrap">
+                    <i class="fas fa-envelope icon-left"></i>
+                    <input type="email" id="email" name="email" placeholder="you@example.com"
+                           oninput="validateEmail(this)" required>
+                </div>
+                <div class="field-msg" id="msg-email"></div>
+            </div>
+
+            <!-- Phone -->
+            <div class="field">
+                <label for="phone">Phone Number</label>
+                <div class="input-wrap">
+                    <i class="fas fa-phone icon-left"></i>
+                    <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number"
+                           maxlength="10" oninput="validatePhone(this)" required>
+                </div>
+                <div class="field-msg" id="msg-phone"></div>
+            </div>
+
+            <div class="two-col">
+                <!-- Password -->
+                <div class="field">
+                    <label for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock icon-left"></i>
+                        <input type="password" id="password" name="password" placeholder="Min 8 characters"
+                               oninput="validatePassword(this)" required>
+                        <i class="fas fa-eye toggle-pw" onclick="togglePw('password', this)"></i>
+                    </div>
+                    <div class="strength-wrap">
+                        <div class="strength-bars">
+                            <span id="sb1"></span><span id="sb2"></span>
+                            <span id="sb3"></span><span id="sb4"></span>
+                        </div>
+                        <div class="strength-label" id="strength-label">Enter a password</div>
+                    </div>
+                    <div class="field-msg" id="msg-password"></div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="field">
+                    <label for="confirm_password">Confirm Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock icon-left"></i>
+                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Re-enter password"
+                               oninput="validateConfirm(this)" required>
+                        <i class="fas fa-eye toggle-pw" onclick="togglePw('confirm_password', this)"></i>
+                    </div>
+                    <div class="field-msg" id="msg-confirm"></div>
+                </div>
+            </div>
+
+            <div class="checkbox-row">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">I agree to the <a href="#" style="color:var(--green-primary);font-weight:600;">Terms & Conditions</a> and <a href="#" style="color:var(--green-primary);font-weight:600;">Privacy Policy</a></label>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-user-plus"></i> Create My Account
+            </button>
+        </form>
+
+        <p class="login-note">Already have an account? <a href="{{ url_for('login') }}">Sign in here</a></p>
+    </div>
+</div>
+
+<script>
+    /* ── Helpers ── */
+    function setField(input, msgEl, ok, text) {
+        input.classList.toggle('valid', ok);
+        input.classList.toggle('invalid', !ok && text !== '');
+        msgEl.className = 'field-msg ' + (ok ? 'ok' : (text ? 'err' : ''));
+        msgEl.innerHTML = text ? `<i class="fas fa-${ok ? 'check' : 'times'}-circle"></i> ${text}` : '';
+        return ok;
+    }
+
+    /* Full Name: letters, spaces, dots only */
+    function validateName(inp) {
+        const v = inp.value.trim();
+        if (!v) return setField(inp, document.getElementById('msg-name'), false, 'Full name is required');
+        if (/[0-9]/.test(v)) return setField(inp, document.getElementById('msg-name'), false, 'No numbers allowed in name');
+        if (/[^a-zA-Z\s\.]/.test(v)) return setField(inp, document.getElementById('msg-name'), false, 'No special characters allowed');
+        if (v.length < 2) return setField(inp, document.getElementById('msg-name'), false, 'Name too short');
+        return setField(inp, document.getElementById('msg-name'), true, 'Looks good!');
+    }
+
+    /* Username: alphanumeric + underscore */
+    function validateUsername(inp) {
+        const v = inp.value.trim();
+        if (!v) return setField(inp, document.getElementById('msg-username'), false, 'Username required');
+        if (v.length < 3) return setField(inp, document.getElementById('msg-username'), false, 'Min 3 characters');
+        if (/[^a-zA-Z0-9_]/.test(v)) return setField(inp, document.getElementById('msg-username'), false, 'Only letters, numbers, underscore');
+        return setField(inp, document.getElementById('msg-username'), true, 'Available ✓');
+    }
+
+    /* Email */
+    function validateEmail(inp) {
+        const v = inp.value.trim();
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!v) return setField(inp, document.getElementById('msg-email'), false, 'Email is required');
+        if (!v.includes('@')) return setField(inp, document.getElementById('msg-email'), false, 'Must contain @');
+        if (!re.test(v)) return setField(inp, document.getElementById('msg-email'), false, 'Enter a valid email address');
+        return setField(inp, document.getElementById('msg-email'), true, 'Valid email');
+    }
+
+    /* Phone: exactly 10 digits */
+    function validatePhone(inp) {
+        inp.value = inp.value.replace(/\D/g, '').slice(0, 10);
+        const v = inp.value;
+        if (!v) return setField(inp, document.getElementById('msg-phone'), false, 'Phone number is required');
+        if (v.length !== 10) return setField(inp, document.getElementById('msg-phone'), false, `${10 - v.length} more digit${10 - v.length !== 1 ? 's' : ''} needed`);
+        return setField(inp, document.getElementById('msg-phone'), true, 'Valid phone number');
+    }
+
+    /* Password: min 8, 1 upper, 1 lower, 1 digit, 1 special */
+    function validatePassword(inp) {
+        const v = inp.value;
+        const checks = [
+            v.length >= 8,
+            /[A-Z]/.test(v),
+            /[a-z]/.test(v),
+            /[0-9]/.test(v),
+            /[^a-zA-Z0-9]/.test(v)
+        ];
+        const score = checks.filter(Boolean).length;
+        const bars = ['sb1','sb2','sb3','sb4'];
+        const colors = ['', '#ef4444', '#f59e0b', '#22c55e', '#16a34a'];
+        const labels = ['', 'Weak', 'Fair', 'Strong', 'Very Strong'];
+        bars.forEach((id, i) => {
+            document.getElementById(id).style.background = i < score ? colors[score] : '#e5e7eb';
+        });
+        document.getElementById('strength-label').textContent = labels[score] || 'Enter a password';
+        document.getElementById('strength-label').style.color = colors[score] || '#9ca3af';
+
+        if (!v) return setField(inp, document.getElementById('msg-password'), false, 'Password required');
+        if (!checks[0]) return setField(inp, document.getElementById('msg-password'), false, 'Minimum 8 characters');
+        if (!checks[1]) return setField(inp, document.getElementById('msg-password'), false, 'Add at least 1 uppercase letter');
+        if (!checks[2]) return setField(inp, document.getElementById('msg-password'), false, 'Add at least 1 lowercase letter');
+        if (!checks[3]) return setField(inp, document.getElementById('msg-password'), false, 'Add at least 1 number');
+        if (!checks[4]) return setField(inp, document.getElementById('msg-password'), false, 'Add at least 1 special character (@#$!…)');
+        return setField(inp, document.getElementById('msg-password'), true, 'Strong password!');
+    }
+
+    /* Confirm Password */
+    function validateConfirm(inp) {
+        const v = inp.value;
+        const pw = document.getElementById('password').value;
+        if (!v) return setField(inp, document.getElementById('msg-confirm'), false, 'Please confirm your password');
+        if (v !== pw) return setField(inp, document.getElementById('msg-confirm'), false, 'Passwords do not match');
+        return setField(inp, document.getElementById('msg-confirm'), true, 'Passwords match!');
+    }
+
+    /* Toggle password visibility */
+    function togglePw(id, icon) {
+        const inp = document.getElementById(id);
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+    }
+
+    /* Full form validation on submit */
+    function validateForm() {
+        const n  = validateName(document.getElementById('fullname'));
+        const u  = validateUsername(document.getElementById('username'));
+        const e  = validateEmail(document.getElementById('email'));
+        const p  = validatePhone(document.getElementById('phone'));
+        const pw = validatePassword(document.getElementById('password'));
+        const cp = validateConfirm(document.getElementById('confirm_password'));
+        const tc = document.getElementById('terms');
+        if (!tc.checked) { alert('Please accept the Terms & Conditions'); return false; }
+        return n && u && e && p && pw && cp;
+    }
+</script>
+{% include '_alerts.html' %}
 </body>
 </html>

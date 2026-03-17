@@ -18,7 +18,16 @@ def init_db():
     # Users table (for customer registration)
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY, username TEXT UNIQUE, email TEXT UNIQUE, 
-                  password TEXT, created_at TIMESTAMP)''')
+                  password TEXT, fullname TEXT, phone TEXT, created_at TIMESTAMP)''')
+    # Migration: add fullname/phone columns if they don't exist (for existing DBs)
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN fullname TEXT')
+    except:
+        pass
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN phone TEXT')
+    except:
+        pass
     
     # Items table with image support
     c.execute('''CREATE TABLE IF NOT EXISTS items
@@ -34,10 +43,10 @@ def init_db():
     
     # Insert default items with images from reliable sources
     default_items = [
-        ('tomato', 20, 10.0, 15, 'https://cdn.pixabay.com/photo/2016/08/21/10/47/tomato-1609504_640.jpg', 'Fresh red tomatoes - Rich in vitamins and antioxidants'),
-        ('brinjal', 25, 20.0, 20, 'https://cdn.pixabay.com/photo/2015/05/19/07/27/eggplant-773304_640.jpg', 'Fresh purple brinjal - High in fiber and nutrients'),
-        ('potato', 40, 15.0, 30, 'https://cdn.pixabay.com/photo/2015/11/07/23/47/potato-1031142_640.jpg', 'Fresh potatoes - Naturally gluten-free and filling'),
-        ('mirchi', 30, 20.0, 20, 'https://cdn.pixabay.com/photo/2017/01/26/20/10/chili-pepper-2011698_640.jpg', 'Fresh green chili - Spicy and flavorful addition to meals')
+        ('tomato', 20, 10.0, 15, '/static/images/tomato.png', 'Fresh red tomatoes - Rich in vitamins and antioxidants'),
+        ('brinjal', 25, 20.0, 20, '/static/images/brinjal.png', 'Fresh purple brinjal - High in fiber and nutrients'),
+        ('potato', 40, 15.0, 30, '/static/images/potato.png', 'Fresh potatoes - Naturally gluten-free and filling'),
+        ('mirchi', 30, 20.0, 20, '/static/images/mirchi.png', 'Fresh green chili - Spicy and flavorful addition to meals')
     ]
     
     for item in default_items:
@@ -128,36 +137,58 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    import re
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        
+        fullname = request.form.get('fullname', '').strip()
+        username = request.form.get('username', '').strip()
+        email    = request.form.get('email', '').strip()
+        phone    = request.form.get('phone', '').strip()
+        password = request.form.get('password', '')
+        confirm_password = request.form.get('confirm_password', '')
+
+        # Server-side validation
+        if not fullname or re.search(r'[0-9!@#$%^&*()+=\[\]{};:\'"<>,?/\\|`~]', fullname):
+            flash('Full name must contain only letters and spaces', 'error')
+            return redirect(url_for('register'))
+
+        if not re.match(r'^[a-zA-Z0-9_]{3,}$', username):
+            flash('Username must be at least 3 alphanumeric characters', 'error')
+            return redirect(url_for('register'))
+
+        if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+            flash('Please enter a valid email address', 'error')
+            return redirect(url_for('register'))
+
+        if not re.match(r'^[0-9]{10}$', phone):
+            flash('Phone number must be exactly 10 digits', 'error')
+            return redirect(url_for('register'))
+
         if password != confirm_password:
             flash('Passwords do not match', 'error')
             return redirect(url_for('register'))
-        
-        if len(password) < 6:
-            flash('Password must be at least 6 characters', 'error')
+
+        pw_ok = (len(password) >= 8 and re.search(r'[A-Z]', password)
+                 and re.search(r'[a-z]', password) and re.search(r'[0-9]', password)
+                 and re.search(r'[^a-zA-Z0-9]', password))
+        if not pw_ok:
+            flash('Password must be 8+ characters with uppercase, lowercase, number & special character', 'error')
             return redirect(url_for('register'))
-        
+
         try:
             conn = sqlite3.connect(DATABASE)
             c = conn.cursor()
             hashed_password = generate_password_hash(password)
-            c.execute('INSERT INTO users (username, email, password, created_at) VALUES (?, ?, ?, ?)',
-                     (username, email, hashed_password, datetime.now()))
+            c.execute('INSERT INTO users (username, email, password, fullname, phone, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                     (username, email, hashed_password, fullname, phone, datetime.now()))
             conn.commit()
             conn.close()
-            
-            flash('Registration successful! Please login.', 'success')
+            flash('Account created successfully! Please login.', 'success')
             return redirect(url_for('login'))
         except sqlite3.IntegrityError:
             flash('Username or email already exists', 'error')
         except Exception as e:
             flash(f'Error: {str(e)}', 'error')
-    
+
     return render_template('register.html')
 
 @app.route('/logout')
@@ -173,23 +204,48 @@ def logout():
 def admin_dashboard():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    
+
     c.execute('SELECT COUNT(*) FROM users')
     total_users = c.fetchone()[0]
-    
+
     c.execute('SELECT COUNT(*) FROM sales')
     total_sales_count = c.fetchone()[0]
-    
+
     c.execute('SELECT SUM(total) FROM sales')
     total_revenue = c.fetchone()[0] or 0
-    
-    c.execute('SELECT * FROM items')
-    items = c.fetchall()
+
+    c.execute('SELECT COUNT(*) FROM items')
+    total_items = c.fetchone()[0]
+
+    # Weekly bar chart: top vegetables by quantity sold in last 7 days
+    c.execute('''
+        SELECT item_name, SUM(quantity) as total_qty FROM sales
+        WHERE date >= datetime('now', '-7 days')
+        GROUP BY item_name ORDER BY total_qty DESC LIMIT 5
+    ''')
+    bar_rows = c.fetchall()
+    bar_labels = [r[0].title() for r in bar_rows]
+    bar_data   = [round(float(r[1]), 2) for r in bar_rows]
+
+    # Weekly line chart: daily total revenue for last 7 days
+    c.execute('''
+        SELECT date(date) as day, SUM(total) FROM sales
+        WHERE date >= datetime('now', '-7 days')
+        GROUP BY day ORDER BY day ASC
+    ''')
+    line_rows = c.fetchall()
+    line_labels = [r[0] for r in line_rows]
+    line_data   = [round(float(r[1]), 2) for r in line_rows]
+
     conn.close()
-    
-    return render_template('admin_dashboard.html', items=items, 
-                         total_users=total_users, total_sales_count=total_sales_count,
-                         total_revenue=total_revenue)
+
+    return render_template('admin_dashboard.html',
+                           total_users=total_users,
+                           total_sales_count=total_sales_count,
+                           total_revenue=total_revenue,
+                           total_items=total_items,
+                           bar_labels=bar_labels, bar_data=bar_data,
+                           line_labels=line_labels, line_data=line_data)
 
 @app.route('/admin/add-item', methods=['GET', 'POST'])
 @login_required
@@ -264,34 +320,88 @@ def remove_item(item_id):
     flash('Item removed successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/inventory')
+@login_required
+@admin_required
+def admin_inventory():
+    search   = request.args.get('search', '').strip()
+    price_min = request.args.get('price_min', '')
+    price_max = request.args.get('price_max', '')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    query = 'SELECT * FROM items WHERE 1=1'
+    params = []
+    if search:
+        query += ' AND (name LIKE ? OR description LIKE ?)'
+        params += [f'%{search}%', f'%{search}%']
+    if price_min:
+        query += ' AND price >= ?'
+        params.append(float(price_min))
+    if price_max:
+        query += ' AND price <= ?'
+        params.append(float(price_max))
+    query += ' ORDER BY name'
+    c.execute(query, params)
+    items = c.fetchall()
+    conn.close()
+    return render_template('admin_inventory.html', items=items,
+                           search=search, price_min=price_min, price_max=price_max)
+
 @app.route('/admin/customers')
 @login_required
 @admin_required
 def admin_customers():
+    search    = request.args.get('search', '').strip()
+    date_from = request.args.get('date_from', '').strip()
+    date_to   = request.args.get('date_to', '').strip()
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    c.execute('SELECT * FROM customers')
+    query = 'SELECT * FROM customers WHERE 1=1'
+    params = []
+    if search:
+        query += ' AND (name LIKE ? OR phone LIKE ?)'
+        params += [f'%{search}%', f'%{search}%']
+    if date_from:
+        query += ' AND date_added >= ?'
+        params.append(date_from)
+    if date_to:
+        query += ' AND date_added <= ?'
+        params.append(date_to + ' 23:59:59')
+    query += ' ORDER BY date_added DESC'
+    c.execute(query, params)
     customers = c.fetchall()
     conn.close()
-    
-    return render_template('admin_customers.html', customers=customers)
+    return render_template('admin_customers.html', customers=customers,
+                           search=search, date_from=date_from, date_to=date_to)
 
 @app.route('/admin/sales')
 @login_required
 @admin_required
 def admin_sales():
+    search    = request.args.get('search', '').strip()
+    date_from = request.args.get('date_from', '').strip()
+    date_to   = request.args.get('date_to', '').strip()
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    
-    c.execute('SELECT * FROM sales ORDER BY date DESC')
+    query = 'SELECT * FROM sales WHERE 1=1'
+    params = []
+    if search:
+        query += ' AND (item_name LIKE ? OR customer_name LIKE ?)'
+        params += [f'%{search}%', f'%{search}%']
+    if date_from:
+        query += ' AND date >= ?'
+        params.append(date_from)
+    if date_to:
+        query += ' AND date <= ?'
+        params.append(date_to + ' 23:59:59')
+    query += ' ORDER BY date DESC'
+    c.execute(query, params)
     sales = c.fetchall()
-    
     c.execute('SELECT SUM(total) FROM sales')
     total_sales = c.fetchone()[0] or 0
-    
     conn.close()
-    
-    return render_template('admin_sales.html', sales=sales, total_sales=total_sales)
+    return render_template('admin_sales.html', sales=sales, total_sales=total_sales,
+                           search=search, date_from=date_from, date_to=date_to)
 
 # Customer Routes
 @app.route('/shop')
@@ -377,60 +487,91 @@ def remove_from_cart(item_id):
 @app.route('/checkout', methods=['GET', 'POST'])
 @login_required
 def checkout():
+    # Always pull name & phone from the registered user record
+    user_id = session.get('user_id')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute('SELECT fullname, phone FROM users WHERE id=?', (user_id,))
+    user_row = c.fetchone()
+    conn.close()
+    name  = user_row[0] if user_row and user_row[0] else session.get('username', '')
+    phone = user_row[1] if user_row and user_row[1] else ''
+
     if request.method == 'POST':
-        name = request.form.get('name')
-        phone = request.form.get('phone')
-        
-        if not name or not phone or len(phone) != 10 or not phone.isdigit():
-            flash('Invalid customer details', 'error')
-            return redirect(url_for('checkout'))
-        
         cart = session.get('cart', {})
         if not cart:
-            flash('Cart is empty', 'error')
+            flash('Your cart is empty', 'error')
             return redirect(url_for('customer_shop'))
-        
+
         try:
             conn = sqlite3.connect(DATABASE)
             c = conn.cursor()
-            
+
             c.execute('INSERT OR IGNORE INTO customers (name, phone, date_added) VALUES (?, ?, ?)',
                      (name, phone, datetime.now()))
-            
+
             total_amount = 0
             for item_id, qty in cart.items():
                 c.execute('SELECT * FROM items WHERE id=?', (int(item_id),))
                 item = c.fetchone()
-                
                 if item:
                     item_total = item[2] * qty
-                    
                     c.execute('INSERT INTO sales (item_name, quantity, price, total, customer_name, date) VALUES (?, ?, ?, ?, ?, ?)',
                              (item[1], qty, item[2], item_total, name, datetime.now()))
-                    
                     new_qty = item[3] - qty
                     c.execute('UPDATE items SET quantity=? WHERE id=?', (new_qty, item[0]))
-                    
                     total_amount += item_total
-            
+
             conn.commit()
             conn.close()
-            
+
             session['cart'] = {}
             session.modified = True
-            flash(f'Thank you for shopping! Total: Rs {total_amount}', 'success')
+            flash(f'🎉 Order placed! Thank you {name}. Total: ₹{total_amount:.2f}', 'success')
             return redirect(url_for('customer_shop'))
-        
+
         except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+            flash(f'Error processing order: {str(e)}', 'error')
             return redirect(url_for('checkout'))
-    
+
     cart = session.get('cart', {})
     if not cart:
         flash('Cart is empty', 'warning')
         return redirect(url_for('customer_shop'))
     
-    return render_template('checkout.html')
+    return render_template('checkout.html', user_name=name, user_phone=phone)
+
+@app.route('/my-orders')
+@login_required
+def my_orders():
+    user_id = session.get('user_id')
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    # Get fullname from users table for matching sales records
+    c.execute('SELECT fullname FROM users WHERE id=?', (user_id,))
+    user_row = c.fetchone()
+    customer_name = user_row[0] if user_row and user_row[0] else session.get('username', '')
+    # Fetch all orders for this customer, newest first
+    c.execute('''SELECT item_name, quantity, price, total, date 
+                 FROM sales WHERE customer_name=? ORDER BY date DESC''', (customer_name,))
+    orders = c.fetchall()
+    conn.close()
+    return render_template('my_orders.html', orders=orders, customer_name=customer_name)
+
+@app.route('/api/cart-total')
+@login_required
+def api_cart_total():
+    cart = session.get('cart', {})
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    total = 0
+    for item_id, qty in cart.items():
+        c.execute('SELECT price FROM items WHERE id=?', (int(item_id),))
+        row = c.fetchone()
+        if row:
+            total += row[0] * qty
+    conn.close()
+    return jsonify({'total': total})
 
 @app.route('/api/items')
 def api_items():

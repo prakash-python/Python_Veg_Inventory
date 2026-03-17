@@ -3,68 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Item</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Add Product – VEGMART Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --sidebar-w: 260px; --green: #16a34a; --green-dark: #15803d;
+            --green-light: #dcfce7; --green-mid: #22c55e; --accent: #f59e0b;
+            --dark: #0f172a; --sidebar-bg: #0f172a; --content-bg: #f1f5f9;
+            --card-bg: #ffffff; --text: #1e293b; --text-muted: #64748b;
+            --border: #e2e8f0; --radius: 14px;
+            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--content-bg); color: var(--text); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+        .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 26px 22px; border-bottom: 1px solid rgba(255,255,255,.08); }
+        .brand-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--green-mid), var(--green-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .brand-text strong { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: .5px; display: block; }
+        .brand-text small { font-size: 11px; color: #64748b; }
+        .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+        .nav-section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #475569; text-transform: uppercase; padding: 8px 10px 4px; margin-top: 8px; display: block; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500; transition: all .2s; margin-bottom: 2px; }
+        .nav-item:hover { background: rgba(255,255,255,.12); color: #e2e8f0; }
+        .nav-item.active { background: linear-gradient(135deg, rgba(22,163,74,.25), rgba(22,163,74,.1)); color: #4ade80; border-left: 3px solid var(--green-mid); padding-left: 11px; }
+        .nav-item i { width: 18px; text-align: center; font-size: 15px; }
+        .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+        .sidebar-footer a { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px; color: #f87171; text-decoration: none; font-size: 14px; font-weight: 500; transition: background .2s; }
+        .sidebar-footer a:hover { background: rgba(248,113,113,.12); }
+        .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+        .topbar { background: var(--card-bg); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .topbar h1 { font-size: 20px; font-weight: 800; }
+        .topbar p { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .avatar { width: 38px; height: 38px; background: linear-gradient(135deg, var(--green-mid), var(--green-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 15px; }
+        .content { padding: 28px 32px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 13px; text-decoration: none; font-weight: 500; margin-bottom: 20px; }
+        .back-link:hover { color: var(--green); }
+        .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; max-width: 700px; margin: 0 auto; }
+        .card-header { padding: 20px 28px; border-bottom: 1px solid var(--border); }
+        .card-header h3 { font-size: 16px; font-weight: 700; }
+        .card-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+        .card-body { padding: 28px; }
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 7px; }
+        .field label span { color: #dc2626; } /* required star */
+        .input-wrap { position: relative; }
+        .input-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+        .input-wrap input, .input-wrap textarea, .input-wrap select {
+            width: 100%; padding: 11px 14px 11px 38px; border: 1.5px solid var(--border);
+            border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px;
+            color: var(--text); background: #fff; outline: none; transition: border-color .2s, box-shadow .2s;
+        }
+        textarea.no-icon { padding-left: 14px; }
+        .input-wrap input:focus, .input-wrap textarea:focus, .input-wrap select:focus {
+            border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+        }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
+        .img-preview { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-top: 10px; display: none; }
+        .card-footer { padding: 20px 28px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+        .btn { padding: 11px 24px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; }
+        .btn-green { background: linear-gradient(135deg, var(--green-mid), var(--green)); color: #fff; }
+        .btn-green:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(22,163,74,.3); }
+        .btn-secondary { background: var(--content-bg); color: var(--text-muted); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .flash-box { border-radius: 10px; padding: 12px 16px; font-size: 13px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+        .flash-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+        .flash-error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .main { margin-left: 0; } .topbar { padding: 14px 16px; } .content { padding: 20px 16px; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <span class="navbar-brand fw-bold">🥬 VEGMART - Admin</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
-        </div>
-    </nav>
-    
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Add New Item</h5>
-                    </div>
-                    <div class="card-body">
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-                        
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Item Name</label>
-                                <input type="text" class="form-control" name="name" required placeholder="e.g., tomato">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Selling Price (Rs/kg)</label>
-                                <input type="number" class="form-control" name="price" step="0.01" required placeholder="20">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Quantity (kg)</label>
-                                <input type="number" class="form-control" name="quantity" step="0.1" required placeholder="10">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Cost Price</label>
-                                <input type="number" class="form-control" name="cost_price" step="0.01" required placeholder="15">
-                            </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Add Item</button>
-                                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">🥬</div>
+        <div class="brand-text">
+            <strong>VEGMART</strong>
+            <small>Admin Panel</small>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+        <span class="nav-section-label">Store</span>
+        <a href="{{ url_for('add_item') }}" class="nav-item active"><i class="fas fa-plus-circle"></i> Add Product</a>
+        <a href="{{ url_for('admin_inventory') }}" class="nav-item"><i class="fas fa-boxes"></i> Inventory</a>
+        <span class="nav-section-label">People</span>
+        <a href="{{ url_for('admin_customers') }}" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+        <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
+        <span class="nav-section-label">Settings</span>
+        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank"><i class="fas fa-store"></i> View Store</a>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+    </div>
+</aside>
+
+<div class="main">
+    <div class="topbar">
+        <div>
+            <h1>Add Product</h1>
+            <p>Add a new vegetable to your inventory</p>
+        </div>
+        <div class="topbar-right">
+            <div class="avatar">A</div>
+        </div>
+    </div>
+
+    <div class="content">
+        <a href="{{ url_for('admin_dashboard') }}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+
+        <!-- Flash handled by SweetAlert2 -->
+
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-plus-circle" style="color:var(--green);margin-right:8px;"></i>New Product Details</h3>
+                <p>Fill in all fields to add a new vegetable to your store</p>
+            </div>
+            <form method="POST">
+                <div class="card-body">
+                    <div class="two-col">
+                        <div class="field">
+                            <label>Product Name <span>*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-leaf"></i>
+                                <input type="text" name="name" placeholder="e.g. tomato" required>
+                            </div>
+                            <p class="hint">Lowercase only, used as unique identifier</p>
+                        </div>
+                        <div class="field">
+                            <label>Selling Price (₹/kg) <span>*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-tag"></i>
+                                <input type="number" name="price" placeholder="e.g. 40" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="two-col">
+                        <div class="field">
+                            <label>Stock Quantity (kg) <span>*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-weight-hanging"></i>
+                                <input type="number" name="quantity" placeholder="e.g. 100" step="0.1" min="0" required>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Cost Price (₹/kg) <span>*</span></label>
+                            <div class="input-wrap">
+                                <i class="fas fa-rupee-sign"></i>
+                                <input type="number" name="cost_price" placeholder="e.g. 30" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Image URL</label>
+                        <div class="input-wrap">
+                            <i class="fas fa-image"></i>
+                            <input type="url" name="image_url" id="imgUrl"
+                                   placeholder="https://... or /static/images/tomato.png"
+                                   oninput="previewImg(this.value)">
+                        </div>
+                        <img id="imgPreview" class="img-preview" alt="preview">
+                        <p class="hint">Leave empty to use a default placeholder</p>
+                    </div>
+
+                    <div class="field">
+                        <label>Description</label>
+                        <div class="input-wrap">
+                            <textarea name="description" class="no-icon" rows="3"
+                                      placeholder="Describe the product quality, origin, benefits…"
+                                      style="resize:vertical;"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-green">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImg(url) {
+        const img = document.getElementById('imgPreview');
+        if (url) {
+            img.src = url;
+            img.style.display = 'block';
+            img.onerror = () => img.style.display = 'none';
+        } else {
+            img.style.display = 'none';
+        }
+    }
+</script>
+{% include '_alerts.html' %}
 </body>
 </html>

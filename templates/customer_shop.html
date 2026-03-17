@@ -204,6 +204,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('my_orders') }}">
+                            <i class="fas fa-box"></i> My Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
@@ -213,17 +218,7 @@
         </div>
     </nav>
 
-    <!-- Alerts -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show m-0" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+
 
     <!-- Main Content -->
     <div class="container">
@@ -259,7 +254,8 @@
             const quantity = parseFloat(document.getElementById('qty-' + itemId).value);
             
             if (quantity <= 0) {
-                alert('Please enter valid quantity');
+                Swal.fire({ toast:true, position:'top-end', icon:'warning',
+                    title:'Please enter a valid quantity', showConfirmButton:false, timer:3000 });
                 return;
             }
             
@@ -285,16 +281,17 @@
         }
 
         function showNotification(message, type) {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.body.insertBefore(alertDiv, document.body.firstChild);
-            
-            setTimeout(() => alertDiv.remove(), 4000);
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type === 'success' ? 'success' : 'error',
+                title: message,
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
         }
     </script>
+    {% include '_alerts.html' %}
 </body>
 </html>

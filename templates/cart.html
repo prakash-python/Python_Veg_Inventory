@@ -3,67 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Cart – VEGMART</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --green: #16a34a; --green-dark: #15803d; --green-light: #dcfce7;
+            --green-mid: #22c55e; --red: #dc2626; --red-light: #fee2e2;
+            --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+            --border: #e2e8f0; --radius: 14px;
+            --shadow: 0 2px 12px rgba(0,0,0,.07);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* Navbar */
+        nav {
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 99;
+            box-shadow: 0 2px 16px rgba(22,163,74,.3);
+        }
+        .nav-brand { font-size: 22px; font-weight: 800; color: #fff; text-decoration: none; }
+        .nav-links { display: flex; gap: 10px; }
+        .nav-btn {
+            padding: 8px 18px; border-radius: 8px; font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 600; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; transition: all .2s;
+        }
+        .nav-btn-outline { background: rgba(255,255,255,.15); color: #fff; border: 1.5px solid rgba(255,255,255,.5); }
+        .nav-btn-outline:hover { background: #fff; color: var(--green-dark); }
+
+        /* Page layout */
+        .page { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 26px; font-weight: 800; }
+        .page-header p  { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+        .layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+
+        /* Cart cards */
+        .cart-list { display: flex; flex-direction: column; gap: 14px; }
+
+        .cart-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 16px 20px;
+            transition: box-shadow .2s;
+        }
+        .cart-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.1); }
+
+        .item-img {
+            width: 72px; height: 72px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            background: var(--green-light);
+        }
+
+        .item-info { flex: 1; }
+        .item-info .item-name {
+            font-size: 16px; font-weight: 700; color: var(--text);
+            text-transform: uppercase; letter-spacing: .3px;
+        }
+        .item-info .item-meta {
+            font-size: 13px; color: var(--muted); margin-top: 4px;
+        }
+        .item-info .item-qty {
+            display: inline-block;
+            background: var(--green-light);
+            color: var(--green-dark);
+            font-size: 12px; font-weight: 700;
+            padding: 3px 10px; border-radius: 100px;
+            margin-top: 6px;
+        }
+
+        .item-right { text-align: right; flex-shrink: 0; }
+        .item-total {
+            font-size: 18px; font-weight: 800; color: var(--green);
+        }
+
+        .remove-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            margin-top: 8px; font-size: 12px; font-weight: 600;
+            color: var(--red); text-decoration: none;
+            background: var(--red-light);
+            padding: 4px 10px; border-radius: 6px;
+            transition: all .2s;
+        }
+        .remove-btn:hover { background: var(--red); color: #fff; }
+
+        /* Empty state */
+        .empty-state {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 60px 30px;
+            text-align: center;
+        }
+        .empty-state i { font-size: 52px; color: var(--border); margin-bottom: 16px; display: block; }
+        .empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text); }
+        .empty-state p { color: var(--muted); font-size: 14px; margin-top: 6px 0 20px; }
+
+        /* Summary sidebar */
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            position: sticky;
+            top: 80px;
+        }
+        .summary-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+
+        .summary-row {
+            display: flex; justify-content: space-between;
+            font-size: 14px; color: var(--muted);
+            margin-bottom: 10px;
+        }
+        .summary-row.total {
+            font-size: 18px; font-weight: 800; color: var(--text);
+            border-top: 1px solid var(--border);
+            padding-top: 14px; margin-top: 6px;
+        }
+        .summary-row.total span:last-child { color: var(--green); }
+
+        .checkout-btn {
+            display: block; width: 100%;
+            background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+            color: #fff; text-align: center; text-decoration: none;
+            padding: 14px; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+            margin-top: 20px; transition: all .2s;
+            box-shadow: 0 4px 14px rgba(22,163,74,.3);
+        }
+        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(22,163,74,.4); }
+
+        .continue-link {
+            display: block; text-align: center; margin-top: 12px;
+            color: var(--muted); font-size: 13px; text-decoration: none;
+        }
+        .continue-link:hover { color: var(--green); }
+
+        @media (max-width: 768px) {
+            .layout { grid-template-columns: 1fr; }
+            .summary-card { position: static; }
+            .cart-card { flex-wrap: wrap; }
+            .item-right { flex-basis: 100%; display: flex; justify-content: space-between; align-items: center; }
+            .item-right .remove-btn { margin-top: 0; }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container">
-            <span class="navbar-brand fw-bold">🥬 VEGMART - Shopping Cart</span>
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('customer_shop') }}" class="btn btn-outline-light">Continue Shopping</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
-            </div>
-        </div>
-    </nav>
-    
-    <div class="container py-5">
-        <h1 class="mb-4">Your Shopping Cart</h1>
-        
-        {% if cart_items %}
-            <div class="table-responsive mb-4">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Item</th>
-                            <th>Price/kg</th>
-                            <th>Quantity</th>
-                            <th>Total</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in cart_items %}
-                        <tr>
-                            <td><strong>{{ item.name }}</strong></td>
-                            <td>Rs {{ item.price }}</td>
-                            <td>{{ item.quantity }} kg</td>
-                            <td><strong>Rs {{ item.total }}</strong></td>
-                            <td>
-                                <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="btn btn-sm btn-danger">Remove</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="alert alert-info" role="alert">
-                <h5>Total Amount: <span class="float-end text-success fs-4 fw-bold">Rs {{ total }}</span></h5>
-            </div>
-            
-            <div class="d-flex gap-2">
-                <a href="{{ url_for('checkout') }}" class="btn btn-success btn-lg">Proceed to Checkout</a>
-                <a href="{{ url_for('customer_shop') }}" class="btn btn-outline-secondary btn-lg">Continue Shopping</a>
-            </div>
-        {% else %}
-            <div class="alert alert-warning" role="alert">
-                <p>Your cart is empty</p>
-                <a href="{{ url_for('customer_shop') }}" class="btn btn-primary">Start Shopping</a>
-            </div>
-        {% endif %}
+<nav>
+    <a class="nav-brand" href="{{ url_for('customer_shop') }}">🥬 VEGMART</a>
+    <div class="nav-links">
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('my_orders') }}">
+            <i class="fas fa-box"></i> My Orders
+        </a>
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('customer_shop') }}">
+            <i class="fas fa-store"></i> Shop
+        </a>
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</nav>
+
+<div class="page">
+    <div class="page-header">
+        <h1>🛒 Your Cart</h1>
+        <p>Review your items before checkout</p>
+    </div>
+
+    {% if cart_items %}
+    <div class="layout">
+        <!-- Cart Items -->
+        <div class="cart-list">
+            {% for item in cart_items %}
+            <div class="cart-card">
+                <img class="item-img"
+                     src="{{ item.image_url }}"
+                     alt="{{ item.name }}"
+                     onerror="this.src='https://via.placeholder.com/72x72/dcfce7/16a34a?text=V'">
+                <div class="item-info">
+                    <div class="item-name">{{ item.name }}</div>
+                    <div class="item-meta">₹{{ item.price }}/kg</div>
+                    <span class="item-qty"><i class="fas fa-weight-hanging"></i> {{ item.quantity }} kg</span>
+                </div>
+                <div class="item-right">
+                    <div class="item-total">₹{{ "%.2f"|format(item.total) }}</div>
+                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="remove-btn">
+                        <i class="fas fa-trash-alt"></i> Remove
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="summary-card">
+            <h3>Order Summary</h3>
+            {% for item in cart_items %}
+            <div class="summary-row">
+                <span>{{ item.name|upper }} × {{ item.quantity }}kg</span>
+                <span>₹{{ "%.2f"|format(item.total) }}</span>
+            </div>
+            {% endfor %}
+            <div class="summary-row total">
+                <span>Total</span>
+                <span>₹{{ "%.2f"|format(total) }}</span>
+            </div>
+            <a href="{{ url_for('checkout') }}" class="checkout-btn">
+                <i class="fas fa-bolt"></i> Proceed to Checkout
+            </a>
+            <a href="{{ url_for('customer_shop') }}" class="continue-link">
+                ← Continue Shopping
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>Your cart is empty</h3>
+        <p style="margin: 10px 0 20px;">Browse our fresh vegetables and add something!</p>
+        <a href="{{ url_for('customer_shop') }}" style="
+            display:inline-flex;align-items:center;gap:8px;
+            background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;
+            padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;
+        ">
+            <i class="fas fa-store"></i> Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% include '_alerts.html' %}
 </body>
 </html>

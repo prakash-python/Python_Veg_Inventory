@@ -3,58 +3,266 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Checkout – VEGMART</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --green: #16a34a; --green-dark: #15803d; --green-light: #dcfce7;
+            --green-mid: #22c55e; --bg: #f1f5f9; --card: #ffffff;
+            --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --radius: 14px;
+            --shadow: 0 2px 12px rgba(0,0,0,.07);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        nav {
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 99;
+            box-shadow: 0 2px 16px rgba(22,163,74,.3);
+        }
+        .nav-brand { font-size: 22px; font-weight: 800; color: #fff; text-decoration: none; }
+        .nav-btn {
+            padding: 8px 18px; border-radius: 8px; font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 600; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; transition: all .2s;
+            background: rgba(255,255,255,.15); color: #fff;
+            border: 1.5px solid rgba(255,255,255,.5);
+        }
+        .nav-btn:hover { background: #fff; color: var(--green-dark); }
+
+        .page { max-width: 860px; margin: 0 auto; padding: 32px 24px; }
+
+        .page-header { margin-bottom: 28px; }
+        .page-header h1 { font-size: 26px; font-weight: 800; }
+        .page-header p  { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+        /* Step progress */
+        .steps {
+            display: flex; align-items: center; gap: 0;
+            margin-bottom: 32px;
+        }
+        .step {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 600; color: var(--muted);
+        }
+        .step.done .num { background: var(--green); color: #fff; }
+        .step.done { color: var(--green); }
+        .step.active .num { background: var(--green-dark); color: #fff; box-shadow: 0 0 0 4px rgba(22,163,74,.2); }
+        .step.active { color: var(--green-dark); }
+        .step .num {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: var(--border); color: var(--muted);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; flex-shrink: 0;
+        }
+        .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; }
+        .step-line.done { background: var(--green); }
+
+        .grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; }
+
+        /* Customer info card */
+        .info-card, .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .card-header .header-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: var(--green-light);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--green); font-size: 16px;
+        }
+        .card-header h3 { font-size: 15px; font-weight: 700; }
+        .card-header p  { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+        .card-body { padding: 24px; }
+
+        /* User info rows */
+        .info-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-row .icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: var(--green-light);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--green); font-size: 14px; flex-shrink: 0;
+        }
+        .info-row .label { font-size: 11.5px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+        .info-row .value { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
+
+        /* Summary card */
+        .summary-card { position: sticky; top: 80px; }
+        .summary-card .card-body { padding: 20px 24px; }
+
+        .summary-row {
+            display: flex; justify-content: space-between;
+            font-size: 13.5px; color: var(--muted);
+            padding: 6px 0;
+        }
+        .summary-row.divider { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px; }
+        .summary-row.total {
+            font-size: 17px; font-weight: 800; color: var(--text);
+        }
+        .summary-row.total span:last-child { color: var(--green); }
+
+        .place-btn {
+            display: block; width: 100%;
+            background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+            color: #fff; text-align: center; text-decoration: none;
+            padding: 14px; border-radius: 10px;
+            font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700;
+            border: none; cursor: pointer;
+            margin-top: 20px; transition: all .2s;
+            box-shadow: 0 4px 14px rgba(22,163,74,.3);
+        }
+        .place-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(22,163,74,.4); }
+
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: var(--muted); font-size: 13px; font-weight: 500;
+            text-decoration: none; margin-bottom: 20px;
+        }
+        .back-link:hover { color: var(--green); }
+
+        .guarantee {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; color: var(--muted); margin-top: 14px;
+            padding: 10px 14px; border-radius: 8px; background: var(--green-light);
+        }
+        .guarantee i { color: var(--green); }
+
+        @media (max-width: 680px) {
+            .grid { grid-template-columns: 1fr; }
+            .summary-card { position: static; }
+            .steps span { display: none; }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
-        <div class="container">
-            <span class="navbar-brand fw-bold">🥬 VEGMART - Checkout</span>
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
+<nav>
+    <a class="nav-brand" href="{{ url_for('customer_shop') }}">🥬 VEGMART</a>
+    <a class="nav-btn" href="{{ url_for('view_cart') }}">
+        <i class="fas fa-arrow-left"></i> Back to Cart
+    </a>
+</nav>
+
+<div class="page">
+    <div class="page-header">
+        <h1>Checkout</h1>
+        <p>Review your order and confirm</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps">
+        <div class="step done">
+            <div class="num"><i class="fas fa-check" style="font-size:10px;"></i></div>
+            <span>Cart</span>
         </div>
-    </nav>
-    
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Billing Information</h5>
+        <div class="step-line done"></div>
+        <div class="step active">
+            <div class="num">2</div>
+            <span>Confirm Order</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+            <div class="num">3</div>
+            <span>Done</span>
+        </div>
+    </div>
+
+    <div class="grid">
+        <!-- Customer Details (from registration) -->
+        <div>
+            <div class="info-card" style="margin-bottom:20px;">
+                <div class="card-header">
+                    <div class="header-icon"><i class="fas fa-user"></i></div>
+                    <div>
+                        <h3>Delivery Details</h3>
+                        <p>Using your registered information</p>
                     </div>
-                    <div class="card-body">
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-                        
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label class="form-label">Full Name</label>
-                                <input type="text" class="form-control" name="name" required placeholder="Enter your name">
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" name="phone" required placeholder="Enter 10-digit mobile number" pattern="[0-9]{10}">
-                            </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success btn-lg">Complete Purchase</button>
-                                <a href="{{ url_for('view_cart') }}" class="btn btn-outline-secondary">Back to Cart</a>
-                            </div>
-                        </form>
+                </div>
+                <div class="card-body">
+                    <div class="info-row">
+                        <div class="icon"><i class="fas fa-user"></i></div>
+                        <div>
+                            <div class="label">Full Name</div>
+                            <div class="value">{{ user_name or session.username }}</div>
+                        </div>
                     </div>
+                    <div class="info-row">
+                        <div class="icon"><i class="fas fa-phone"></i></div>
+                        <div>
+                            <div class="label">Phone Number</div>
+                            <div class="value">{{ user_phone or '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guarantee">
+                <i class="fas fa-shield-alt"></i>
+                <span>100% Fresh Guarantee – All vegetables sourced daily from local farms</span>
+            </div>
+        </div>
+
+        <!-- Order Summary + Place Order -->
+        <div class="summary-card">
+            <div class="card-header">
+                <div class="header-icon"><i class="fas fa-receipt"></i></div>
+                <div>
+                    <h3>Order Summary</h3>
+                    <p>Review before placing</p>
+                </div>
+            </div>
+            <div class="card-body">
+                {% set cart = session.get('cart', {}) %}
+                <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">{{ cart|length }} item(s) in cart</p>
+
+                <form method="POST">
+                    <div class="summary-row divider total">
+                        <span>Total Payable</span>
+                        <span id="totalDisplay">Calculating…</span>
+                    </div>
+                    <button type="submit" class="place-btn">
+                        <i class="fas fa-check-circle"></i> Place Order
+                    </button>
+                </form>
+
+                <div style="text-align:center;margin-top:14px;">
+                    <a href="{{ url_for('view_cart') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">
+                        ← Edit Cart
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+<script>
+    // Fetch cart total via existing API and display it
+    fetch('/api/cart-total')
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('totalDisplay').textContent = '₹' + d.total.toFixed(2);
+        })
+        .catch(() => {
+            document.getElementById('totalDisplay').textContent = 'See cart';
+        });
+</script>
+{% include '_alerts.html' %}
 </body>
 </html>
