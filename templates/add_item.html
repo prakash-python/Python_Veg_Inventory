@@ -97,8 +97,6 @@
         <span class="nav-section-label">People</span>
         <a href="{{ url_for('admin_customers') }}" class="nav-item"><i class="fas fa-users"></i> Customers</a>
         <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
-        <span class="nav-section-label">Settings</span>
-        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank"><i class="fas fa-store"></i> View Store</a>
     </nav>
     <div class="sidebar-footer">
         <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
@@ -128,7 +126,7 @@
                 <h3><i class="fas fa-plus-circle" style="color:var(--green);margin-right:8px;"></i>New Product Details</h3>
                 <p>Fill in all fields to add a new vegetable to your store</p>
             </div>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="card-body">
                     <div class="two-col">
                         <div class="field">
@@ -166,15 +164,15 @@
                     </div>
 
                     <div class="field">
-                        <label>Image URL</label>
+                        <label>Product Image</label>
                         <div class="input-wrap">
-                            <i class="fas fa-image"></i>
-                            <input type="url" name="image_url" id="imgUrl"
-                                   placeholder="https://... or /static/images/tomato.png"
-                                   oninput="previewImg(this.value)">
+                            <i class="fas fa-upload"></i>
+                            <input type="file" name="image" id="imgFile" accept="image/*"
+                                   style="padding-left: 38px;"
+                                   onchange="previewImgFile(this)">
                         </div>
                         <img id="imgPreview" class="img-preview" alt="preview">
-                        <p class="hint">Leave empty to use a default placeholder</p>
+                        <p class="hint">Upload a JPG, PNG, or WebP. Leave empty to use a default placeholder</p>
                     </div>
 
                     <div class="field">
@@ -198,12 +196,15 @@
 </div>
 
 <script>
-    function previewImg(url) {
+    function previewImgFile(input) {
         const img = document.getElementById('imgPreview');
-        if (url) {
-            img.src = url;
-            img.style.display = 'block';
-            img.onerror = () => img.style.display = 'none';
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
         } else {
             img.style.display = 'none';
         }

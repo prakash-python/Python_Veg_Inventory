@@ -4,9 +4,13 @@ from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'vegmart_secret_key_2024'
+
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 DATABASE = 'vegmart.db'
 
@@ -257,8 +261,15 @@ def add_item():
             price = float(request.form.get('price'))
             quantity = float(request.form.get('quantity'))
             cost_price = float(request.form.get('cost_price'))
-            image_url = request.form.get('image_url')
             description = request.form.get('description')
+            
+            image_url = ''
+            if 'image' in request.files:
+                file = request.files['image']
+                if file.filename != '':
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    image_url = f'/static/uploads/{filename}'
             
             conn = sqlite3.connect(DATABASE)
             c = conn.cursor()
@@ -288,8 +299,17 @@ def modify_item(item_id):
             price = float(request.form.get('price'))
             quantity = float(request.form.get('quantity'))
             cost_price = float(request.form.get('cost_price'))
-            image_url = request.form.get('image_url')
             description = request.form.get('description')
+            
+            c.execute('SELECT image_url FROM items WHERE id=?', (item_id,))
+            image_url = c.fetchone()[0]
+            
+            if 'image' in request.files:
+                file = request.files['image']
+                if file.filename != '':
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    image_url = f'/static/uploads/{filename}'
             
             c.execute('UPDATE items SET price=?, quantity=?, cost_price=?, image_url=?, description=? WHERE id=?',
                      (price, quantity, cost_price, image_url, description, item_id))
@@ -351,9 +371,8 @@ def admin_inventory():
 @login_required
 @admin_required
 def admin_customers():
-    search    = request.args.get('search', '').strip()
-    date_from = request.args.get('date_from', '').strip()
-    date_to   = request.args.get('date_to', '').strip()
+    search = request.args.get('search', '').strip()
+    filter_date = request.args.get('date', '').strip()
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     query = 'SELECT * FROM customers WHERE 1=1'
@@ -361,26 +380,22 @@ def admin_customers():
     if search:
         query += ' AND (name LIKE ? OR phone LIKE ?)'
         params += [f'%{search}%', f'%{search}%']
-    if date_from:
-        query += ' AND date_added >= ?'
-        params.append(date_from)
-    if date_to:
-        query += ' AND date_added <= ?'
-        params.append(date_to + ' 23:59:59')
+    if filter_date:
+        query += ' AND date_added >= ? AND date_added <= ?'
+        params.extend([filter_date + ' 00:00:00', filter_date + ' 23:59:59'])
     query += ' ORDER BY date_added DESC'
     c.execute(query, params)
     customers = c.fetchall()
     conn.close()
     return render_template('admin_customers.html', customers=customers,
-                           search=search, date_from=date_from, date_to=date_to)
+                           search=search, filter_date=filter_date)
 
 @app.route('/admin/sales')
 @login_required
 @admin_required
 def admin_sales():
-    search    = request.args.get('search', '').strip()
-    date_from = request.args.get('date_from', '').strip()
-    date_to   = request.args.get('date_to', '').strip()
+    search = request.args.get('search', '').strip()
+    filter_date = request.args.get('date', '').strip()
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     query = 'SELECT * FROM sales WHERE 1=1'
@@ -388,20 +403,17 @@ def admin_sales():
     if search:
         query += ' AND (item_name LIKE ? OR customer_name LIKE ?)'
         params += [f'%{search}%', f'%{search}%']
-    if date_from:
-        query += ' AND date >= ?'
-        params.append(date_from)
-    if date_to:
-        query += ' AND date <= ?'
-        params.append(date_to + ' 23:59:59')
+    if filter_date:
+        query += ' AND date >= ? AND date <= ?'
+        params.extend([filter_date + ' 00:00:00', filter_date + ' 23:59:59'])
     query += ' ORDER BY date DESC'
     c.execute(query, params)
     sales = c.fetchall()
-    c.execute('SELECT SUM(total) FROM sales')
+    c.execute('SELECT SUM(total) FROM sales WHERE 1=1' + query.replace('SELECT * FROM sales WHERE 1=1', '').replace('ORDER BY date DESC', ''), params)
     total_sales = c.fetchone()[0] or 0
     conn.close()
     return render_template('admin_sales.html', sales=sales, total_sales=total_sales,
-                           search=search, date_from=date_from, date_to=date_to)
+                           search=search, filter_date=filter_date)
 
 # Customer Routes
 @app.route('/shop')
