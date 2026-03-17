@@ -8,7 +8,7 @@ customers=[]
 customer_numbers=[]
 Total_profit=[]
 admin_username = "admin"
-admin_password = "password123"
+admin_password = "Admin@123"
 
 
 while True:
@@ -164,7 +164,7 @@ while True:
 
                 else:
                     print()
-                    print("Invalid input!")
+                    print("Invalid input! Please enter a number between 1 and 8.")
                     print()
         else:
             print()
@@ -357,7 +357,7 @@ while True:
 
             else:
                 print()
-                print("Invalid input")
+                print("Invalid input! Please enter a number between 1 and 6.")
                 print()
             
       
@@ -369,5 +369,5 @@ while True:
 
     else:
         print()
-        print("Invalid input")
+        print("Invalid input! Please enter a number between 1 and 3.")
         print()

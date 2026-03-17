@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEGMART - Fresh Vegetables Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-size: 28px;
+            font-weight: bold;
+            color: white !important;
+        }
+
+        .nav-link {
+            color: white !important;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #f0f0f0 !important;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-hero {
+            padding: 12px 40px;
+            font-size: 16px;
+            margin: 10px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: #f8f9fa;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .feature-card i {
+            font-size: 48px;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+
+        /* Products Section */
+        .products {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 42px;
+            font-weight: bold;
+            margin-bottom: 50px;
+            color: #333;
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .product-body {
+            padding: 20px;
+        }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            font-size: 24px;
+            color: #2ecc71;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .product-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .btn-product {
+            width: 100%;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-product:hover {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        /* Footer */
+        .footer {
+            background: #2c3e50;
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        /* Auth Buttons */
+        .btn-auth {
+            padding: 10px 25px;
+            font-weight: 600;
+            border-radius: 25px;
+        }
+
+        .btn-login {
+            background: white;
+            color: #2ecc71;
+        }
+
+        .btn-signup {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .btn-signup:hover {
+            background: white;
+            color: #2ecc71;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .product-image {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">🥬 VEGMART</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#products">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-auth btn-login" href="{{ url_for('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-auth btn-signup" href="{{ url_for('register') }}">Sign Up</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show m-0" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>🥕 Fresh Vegetables Online</h1>
+            <p>Farm-to-Table Quality, Delivered Fresh to Your Door</p>
+            <a href="{{ url_for('register') }}" class="btn btn-hero btn-light">Start Shopping</a>
+            <a href="#products" class="btn btn-hero btn-outline-light">View Products</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-truck"></i>
+                        <h4>Fast Delivery</h4>
+                        <p>Fresh vegetables delivered to your doorstep within 24 hours</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-leaf"></i>
+                        <h4>100% Fresh</h4>
+                        <p>Directly sourced from local farms, guaranteed fresh quality</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Safe & Secure</h4>
+                        <p>Secure payments and guaranteed product quality</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
+        <div class="container">
+            <h2 class="section-title">Featured Products</h2>
+            <div class="row">
+                {% for item in featured_items %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="product-card">
+                        <img src="{{ item[5] }}" alt="{{ item[1] }}" class="product-image" loading="lazy">
+                        <div class="product-body">
+                            <h5 class="product-name">{{ item[1]|upper }}</h5>
+                            <p class="product-price">Rs {{ item[2] }}/kg</p>
+                            <p class="product-description">{{ item[6] or 'Fresh and healthy' }}</p>
+                            <p class="text-muted small">Stock: {{ item[3] }} kg available</p>
+                            <a href="{{ url_for('login') }}" class="btn btn-product">
+                                <i class="fas fa-shopping-cart"></i> Shop Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="features" id="about">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-4">
+                    <img src="https://via.placeholder.com/400?text=Fresh+Vegetables" alt="About Us" style="border-radius: 15px; width: 100%;">
+                </div>
+                <div class="col-md-6">
+                    <h2 style="font-size: 36px; margin-bottom: 20px;">About VEGMART</h2>
+                    <p style="font-size: 16px; line-height: 1.8; color: #555;">
+                        VEGMART is your trusted online marketplace for fresh, quality vegetables. 
+                        We believe in bringing farm-fresh produce directly to your table, ensuring 
+                        the highest quality and freshness.
+                    </p>
+                    <p style="font-size: 16px; line-height: 1.8; color: #555;">
+                        With a wide selection of organic and conventional vegetables, competitive pricing, 
+                        and swift delivery, we make healthy eating convenient.
+                    </p>
+                    <div class="mt-4">
+                        <div class="mb-3">
+                            <strong style="font-size: 18px; color: #2ecc71;">✓</strong>
+                            <span style="margin-left: 10px;">100% Fresh Guarantee</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong style="font-size: 18px; color: #2ecc71;">✓</strong>
+                            <span style="margin-left: 10px;">Trusted by 10,000+ Customers</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong style="font-size: 18px; color: #2ecc71;">✓</strong>
+                            <span style="margin-left: 10px;">Expert Customer Support</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container py-4">
+            <p>&copy; 2024 VEGMART. All rights reserved. | Fresh Vegetables Delivered Daily</p>
+            <p style="margin-top: 10px;">Made with ❤️ for healthier living</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
