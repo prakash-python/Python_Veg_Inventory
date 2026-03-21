@@ -4,11 +4,19 @@ from datetime import datetime
 from functools import wraps
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'vegmart_secret_key_2024'
 
 DATABASE = 'vegmart.db'
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'images')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB limit
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Initialize Database
 def init_db():
@@ -32,7 +40,15 @@ def init_db():
     # Items table with image support
     c.execute('''CREATE TABLE IF NOT EXISTS items
                  (id INTEGER PRIMARY KEY, name TEXT UNIQUE, price REAL, quantity REAL, 
-                  cost_price REAL, image_url TEXT, description TEXT)''')
+                  cost_price REAL, image_url TEXT, description TEXT, created_at TIMESTAMP, created_by TEXT)''')
+    try:
+        c.execute('ALTER TABLE items ADD COLUMN created_at TIMESTAMP')
+    except:
+        pass
+    try:
+        c.execute('ALTER TABLE items ADD COLUMN created_by TEXT')
+    except:
+        pass
     
     c.execute('''CREATE TABLE IF NOT EXISTS customers
                  (id INTEGER PRIMARY KEY, name TEXT, phone TEXT UNIQUE, date_added TIMESTAMP)''')
@@ -51,7 +67,9 @@ def init_db():
     
     for item in default_items:
         try:
-            c.execute('INSERT INTO items (name, price, quantity, cost_price, image_url, description) VALUES (?, ?, ?, ?, ?, ?)', item)
+            # Default items get 'admin' and current time
+            item_with_audit = item + (datetime.now(), 'admin')
+            c.execute('INSERT INTO items (name, price, quantity, cost_price, image_url, description, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', item_with_audit)
         except sqlite3.IntegrityError:
             pass
     
@@ -59,6 +77,16 @@ def init_db():
     conn.close()
 
 init_db()
+
+# One-time cleanup: clear any external placeholder URLs stored in DB
+def _clean_placeholder_urls():
+    conn = sqlite3.connect(DATABASE)
+    c = conn.cursor()
+    c.execute("UPDATE items SET image_url = '' WHERE image_url LIKE '%via.placeholder%'")
+    conn.commit()
+    conn.close()
+
+_clean_placeholder_urls()
 
 # Login Required Decorator
 def login_required(f):
@@ -128,6 +156,7 @@ def login():
             
             if username == 'admin' and password == 'Admin@123':
                 session['user_type'] = 'admin'
+                session['username'] = 'admin'
                 flash('Admin login successful!', 'success')
                 return redirect(url_for('admin_dashboard'))
             else:
@@ -253,59 +282,114 @@ def admin_dashboard():
 def add_item():
     if request.method == 'POST':
         try:
-            name = request.form.get('name').lower()
+            name = request.form.get('name').strip().lower()
             price = float(request.form.get('price'))
             quantity = float(request.form.get('quantity'))
             cost_price = float(request.form.get('cost_price'))
-            image_url = request.form.get('image_url')
             description = request.form.get('description')
+
+            # Handle image upload
+            image_file = request.files.get('image')
+            print(f"=== ADD ITEM DEBUG ===")
+            print(f"Form items: {request.form}")
+            print(f"Files received: {request.files}")
+            print(f"UPLOAD_FOLDER: {app.config['UPLOAD_FOLDER']}")
             
+            if image_file:
+                print(f"Image filename: '{image_file.filename}'")
+                if not allowed_file(image_file.filename):
+                    print(f"File rejected by allowed_file check: {image_file.filename}")
+            else:
+                print("No image file in request.files!")
+                
+            if image_file and image_file.filename and allowed_file(image_file.filename):
+                ext = image_file.filename.rsplit('.', 1)[1].lower()
+                filename = secure_filename(f"{name}.{ext}")
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                image_url = f'/static/images/{filename}'
+            else:
+                image_url = ''  # No image — templates will show a CSS avatar
+
             conn = sqlite3.connect(DATABASE)
             c = conn.cursor()
-            c.execute('INSERT INTO items (name, price, quantity, cost_price, image_url, description) VALUES (?, ?, ?, ?, ?, ?)',
-                     (name, price, quantity, cost_price, image_url, description))
+            
+            creator = session.get('username', 'admin')
+            c.execute('INSERT INTO items (name, price, quantity, cost_price, image_url, description, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                     (name, price, quantity, cost_price, image_url, description, datetime.now(), creator))
             conn.commit()
             conn.close()
-            
+
             flash('Item added successfully!', 'success')
-            return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('admin_inventory'))
         except sqlite3.IntegrityError:
-            flash('Item already exists', 'error')
+            flash('Item with this name already exists', 'error')
         except Exception as e:
             flash(f'Error: {str(e)}', 'error')
-    
+
     return render_template('add_item.html')
 
 @app.route('/admin/modify-item/<int:item_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def modify_item(item_id):
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-    
     if request.method == 'POST':
         try:
-            price = float(request.form.get('price'))
-            quantity = float(request.form.get('quantity'))
+            price      = float(request.form.get('price'))
+            quantity   = float(request.form.get('quantity'))
             cost_price = float(request.form.get('cost_price'))
-            image_url = request.form.get('image_url')
             description = request.form.get('description')
+
+            # Handle image upload — keep existing if no new file chosen
+            image_file = request.files.get('image')
+            print(f"=== MODIFY ITEM DEBUG ===")
+            print(f"Form items: {request.form}")
+            print(f"Files received: {request.files}")
             
-            c.execute('UPDATE items SET price=?, quantity=?, cost_price=?, image_url=?, description=? WHERE id=?',
-                     (price, quantity, cost_price, image_url, description, item_id))
+            if image_file:
+                print(f"Image filename: '{image_file.filename}'")
+                if not allowed_file(image_file.filename):
+                    print(f"File rejected by allowed_file check: {image_file.filename}")
+            else:
+                print("No image file in request.files!")
+                
+            if image_file and image_file.filename and allowed_file(image_file.filename):
+                # Fetch item name for filename
+                conn_name = sqlite3.connect(DATABASE)
+                row = conn_name.execute('SELECT name FROM items WHERE id=?', (item_id,)).fetchone()
+                conn_name.close()
+                item_name = row[0] if row else str(item_id)
+
+                ext = image_file.filename.rsplit('.', 1)[1].lower()
+                filename = secure_filename(f"{item_name}.{ext}")
+                save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                image_file.save(save_path)
+                image_url = f'/static/images/{filename}'
+                print(f"[UPLOAD] Saved image to: {save_path}")
+            else:
+                image_url = request.form.get('existing_image_url', '')
+                print(f"[UPLOAD] No file uploaded, keeping: {image_url!r}")
+
+            conn = sqlite3.connect(DATABASE)
+            conn.execute(
+                'UPDATE items SET price=?, quantity=?, cost_price=?, image_url=?, description=? WHERE id=?',
+                (price, quantity, cost_price, image_url, description, item_id)
+            )
             conn.commit()
             conn.close()
-            
+
             flash('Item modified successfully!', 'success')
-            return redirect(url_for('admin_dashboard'))
+            return redirect(url_for('admin_inventory'))
         except Exception as e:
+            import traceback; traceback.print_exc()
             flash(f'Error: {str(e)}', 'error')
-    
-    c.execute('SELECT * FROM items WHERE id=?', (item_id,))
-    item = c.fetchone()
+
+    conn = sqlite3.connect(DATABASE)
+    item = conn.execute('SELECT * FROM items WHERE id=?', (item_id,)).fetchone()
     conn.close()
-    
     return render_template('modify_item.html', item=item)
+
 
 @app.route('/admin/remove-item/<int:item_id>')
 @login_required
@@ -318,90 +402,213 @@ def remove_item(item_id):
     conn.close()
     
     flash('Item removed successfully!', 'success')
-    return redirect(url_for('admin_dashboard'))
+    return redirect(url_for('admin_inventory'))
 
-@app.route('/admin/inventory')
+@app.route('/admin/inventory', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_inventory():
-    search   = request.args.get('search', '').strip()
-    price_min = request.args.get('price_min', '')
-    price_max = request.args.get('price_max', '')
+    if request.method == 'POST':
+        search = request.form.get('search', '').strip()
+        price_type = request.form.get('price_type', 'selling')
+        price_range = request.form.get('price_range', '')
+        date_created = request.form.get('date_created', '')
+    else:
+        search = request.args.get('search', '').strip()
+        price_type = request.args.get('price_type', 'selling')
+        price_range = request.args.get('price_range', '')
+        date_created = request.args.get('date_created', '')
+    
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     query = 'SELECT * FROM items WHERE 1=1'
     params = []
+    
     if search:
         query += ' AND (name LIKE ? OR description LIKE ?)'
         params += [f'%{search}%', f'%{search}%']
-    if price_min:
-        query += ' AND price >= ?'
-        params.append(float(price_min))
-    if price_max:
-        query += ' AND price <= ?'
-        params.append(float(price_max))
+        
+    if price_range:
+        col = 'price' if price_type == 'selling' else 'cost_price'
+        if price_range == '0-50':
+            query += f' AND {col} BETWEEN 0 AND 50'
+        elif price_range == '50-100':
+            query += f' AND {col} BETWEEN 50 AND 100'
+        elif price_range == '100-500':
+            query += f' AND {col} BETWEEN 100 AND 500'
+        elif price_range == '500+':
+            query += f' AND {col} >= 500'
+            
+    if date_created:
+        query += ' AND date(created_at) = ?'
+        params.append(date_created)
+        
     query += ' ORDER BY name'
     c.execute(query, params)
     items = c.fetchall()
     conn.close()
     return render_template('admin_inventory.html', items=items,
-                           search=search, price_min=price_min, price_max=price_max)
+                           search=search, price_type=price_type, 
+                           price_range=price_range, date_created=date_created)
 
-@app.route('/admin/customers')
+
+# --- ADMIN USER MANAGEMENT ---
+
+@app.route('/admin/users', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def admin_customers():
-    search    = request.args.get('search', '').strip()
-    date_from = request.args.get('date_from', '').strip()
-    date_to   = request.args.get('date_to', '').strip()
+def admin_users():
+    if request.method == 'POST':
+        search = request.form.get('search', '').strip()
+        date_joined = request.form.get('date_joined', '')
+    else:
+        search = request.args.get('search', '').strip()
+        date_joined = request.args.get('date_joined', '')
+        
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
-    query = 'SELECT * FROM customers WHERE 1=1'
+    # Explicitly list columns to guarantee indices: 
+    # 0:id, 1:username, 2:email, 3:password, 4:fullname, 5:phone, 6:created_at
+    query = 'SELECT id, username, email, password, fullname, phone, created_at FROM users WHERE 1=1'
     params = []
+    
     if search:
-        query += ' AND (name LIKE ? OR phone LIKE ?)'
-        params += [f'%{search}%', f'%{search}%']
-    if date_from:
-        query += ' AND date_added >= ?'
-        params.append(date_from)
-    if date_to:
-        query += ' AND date_added <= ?'
-        params.append(date_to + ' 23:59:59')
-    query += ' ORDER BY date_added DESC'
+        query += ' AND (fullname LIKE ? OR username LIKE ? OR email LIKE ? OR phone LIKE ?)'
+        params += [f'%{search}%', f'%{search}%', f'%{search}%', f'%{search}%']
+    if date_joined:
+        query += ' AND date(created_at) = ?'
+        params.append(date_joined)
+        
+    query += ' ORDER BY created_at DESC'
     c.execute(query, params)
-    customers = c.fetchall()
+    users = c.fetchall()
     conn.close()
-    return render_template('admin_customers.html', customers=customers,
-                           search=search, date_from=date_from, date_to=date_to)
+    
+    return render_template('admin_users.html', users=users, 
+                           search=search, date_joined=date_joined)
 
-@app.route('/admin/sales')
+
+@app.route('/admin/add-user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_user():
+    if request.method == 'POST':
+        fullname = request.form.get('fullname', '')
+        username = request.form.get('username', '')
+        email = request.form.get('email', '')
+        phone = request.form.get('phone', '')
+        password = request.form.get('password', '')
+        
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        
+        try:
+            conn = sqlite3.connect(DATABASE)
+            c = conn.cursor()
+            c.execute('INSERT INTO users (username, email, password, fullname, phone, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                     (username, email, hashed_password, fullname, phone, datetime.now()))
+            conn.commit()
+            conn.close()
+            flash('System user created successfully!', 'success')
+            return redirect(url_for('admin_users'))
+        except sqlite3.IntegrityError:
+            flash('Error: Username or Phone already exists!', 'error')
+            
+    return render_template('user_form.html', is_edit=False, user=None)
+
+
+@app.route('/admin/modify-user/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def modify_user(user_id):
+    conn = sqlite3.connect(DATABASE)
+    if request.method == 'POST':
+        fullname = request.form.get('fullname', '')
+        email = request.form.get('email', '')
+        phone = request.form.get('phone', '')
+        password = request.form.get('password', '')
+        
+        c = conn.cursor()
+        try:
+            if password:
+                hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+                c.execute('UPDATE users SET fullname=?, email=?, phone=?, password=? WHERE id=?',
+                         (fullname, email, phone, hashed_password, user_id))
+            else:
+                c.execute('UPDATE users SET fullname=?, email=?, phone=? WHERE id=?',
+                         (fullname, email, phone, user_id))
+            conn.commit()
+            flash('User account updated successfully!', 'success')
+            return redirect(url_for('admin_users'))
+        except Exception as e:
+            flash(f'Update Error: {str(e)}', 'error')
+        finally:
+            conn.close()
+        
+    user = conn.execute('SELECT id, username, email, password, fullname, phone, created_at FROM users WHERE id=?', (user_id,)).fetchone()
+    conn.close()
+    if not user:
+        flash('User not found!', 'error')
+        return redirect(url_for('admin_users'))
+        
+    return render_template('user_form.html', is_edit=True, user=user)
+
+
+@app.route('/admin/remove-user/<int:user_id>')
+@login_required
+@admin_required
+def remove_user(user_id):
+    conn = sqlite3.connect(DATABASE)
+    user = conn.execute('SELECT username FROM users WHERE id=?', (user_id,)).fetchone()
+    
+    # Prevent deletion of the currently logged-in admin
+    if user and user[0] == session.get('username'):
+        flash('Action blocked! You cannot delete your own active account.', 'error')
+    else:
+        conn.execute('DELETE FROM users WHERE id=?', (user_id,))
+        conn.commit()
+        flash('User deleted successfully.', 'success')
+        
+    conn.close()
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/sales', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_sales():
-    search    = request.args.get('search', '').strip()
-    date_from = request.args.get('date_from', '').strip()
-    date_to   = request.args.get('date_to', '').strip()
+    if request.method == 'POST':
+        search = request.form.get('search', '').strip()
+        date = request.form.get('date', '').strip()
+    else:
+        search = request.args.get('search', '').strip()
+        date = request.args.get('date', '').strip()
+        
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
     query = 'SELECT * FROM sales WHERE 1=1'
+    sum_query = 'SELECT SUM(total) FROM sales WHERE 1=1'
     params = []
+    
     if search:
-        query += ' AND (item_name LIKE ? OR customer_name LIKE ?)'
+        clause = ' AND (item_name LIKE ? OR customer_name LIKE ?)'
+        query += clause
+        sum_query += clause
         params += [f'%{search}%', f'%{search}%']
-    if date_from:
-        query += ' AND date >= ?'
-        params.append(date_from)
-    if date_to:
-        query += ' AND date <= ?'
-        params.append(date_to + ' 23:59:59')
+    if date:
+        clause = ' AND date LIKE ?'
+        query += clause
+        sum_query += clause
+        params.append(f'{date}%')
+        
     query += ' ORDER BY date DESC'
     c.execute(query, params)
     sales = c.fetchall()
-    c.execute('SELECT SUM(total) FROM sales')
+    
+    c.execute(sum_query, params)
     total_sales = c.fetchone()[0] or 0
     conn.close()
+    
     return render_template('admin_sales.html', sales=sales, total_sales=total_sales,
-                           search=search, date_from=date_from, date_to=date_to)
+                           search=search, date=date)
 
 # Customer Routes
 @app.route('/shop')

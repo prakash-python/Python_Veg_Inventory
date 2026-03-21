@@ -102,10 +102,9 @@
         <a href="{{ url_for('add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
         <a href="{{ url_for('admin_inventory') }}" class="nav-item"><i class="fas fa-boxes"></i> Inventory</a>
         <span class="nav-section-label">People</span>
-        <a href="{{ url_for('admin_customers') }}" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
         <a href="{{ url_for('admin_sales') }}" class="nav-item active"><i class="fas fa-chart-line"></i> Sales Report</a>
-        <span class="nav-section-label">Settings</span>
-        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank"><i class="fas fa-store"></i> View Store</a>
+
     </nav>
     <div class="sidebar-footer">
         <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
@@ -128,26 +127,20 @@
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
 
-        <form method="GET" action="{{ url_for('admin_sales') }}">
+        <form id="searchForm" method="POST">
             <div class="filter-bar">
                 <div class="filter-group" style="flex:2;">
                     <label><i class="fas fa-search"></i> Search</label>
                     <input type="text" name="search" placeholder="Search product or customer…" value="{{ search }}">
                 </div>
-                <div class="filter-group">
-                    <label>From Date</label>
-                    <input type="date" name="date_from" value="{{ date_from }}">
-                </div>
-                <div class="filter-group">
-                    <label>To Date</label>
-                    <input type="date" name="date_to" value="{{ date_to }}">
-                </div>
-                <div style="display:flex;gap:8px;align-items:flex-end;">
-                    <button type="submit" class="filter-btn filter-btn-green"><i class="fas fa-filter"></i> Filter</button>
-                    <a href="{{ url_for('admin_sales') }}" class="filter-btn filter-btn-clear"><i class="fas fa-times"></i> Clear</a>
+                <div class="filter-group" style="flex:1;">
+                    <label>Date</label>
+                    <input type="date" name="date" value="{{ date }}">
                 </div>
             </div>
         </form>
+
+        <div id="salesContainer">
 
         <p class="results-bar">Showing <strong>{{ sales|length }}</strong> record{{ 's' if sales|length != 1 }}</p>
 
@@ -205,7 +198,48 @@
                 </table>
             </div>
         </div>
+        </div>
     </div>
 </div>
+
+<script>
+    let searchTimeout;
+    const searchForm = document.getElementById('searchForm');
+    if (searchForm) {
+        const inputs = searchForm.querySelectorAll('input');
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+        });
+
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    fetch(window.location.pathname, {
+                        method: 'POST',
+                        body: new FormData(searchForm)
+                    })
+                    .then(res => res.text())
+                    .then(html => {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const newContainer = doc.getElementById('salesContainer');
+                        if(newContainer) {
+                            document.getElementById('salesContainer').innerHTML = newContainer.innerHTML;
+                        }
+                    })
+                    .catch(e => console.error("Filter error:", e));
+                }, 400);
+            });
+        });
+
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput && searchInput.value) {
+            const val = searchInput.value;
+            searchInput.value = '';
+            searchInput.value = val;
+            searchInput.focus();
+        }
+    }
+</script>
 </body>
 </html>

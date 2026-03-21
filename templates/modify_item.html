@@ -41,9 +41,10 @@
         .content { padding: 28px 32px; }
         .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 13px; text-decoration: none; font-weight: 500; margin-bottom: 20px; }
         .back-link:hover { color: var(--green); }
-        .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; max-width: 680px; }
+        .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden; max-width: 680px; margin: 0 auto; }
         .card-header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 14px; }
         .card-header img { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+        .header-avatar { width: 50px; height: 50px; border-radius: 10px; background: var(--green-light); color: var(--green); font-size: 22px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .card-header .title h3 { font-size: 16px; font-weight: 700; }
         .card-header .title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
         .card-body { padding: 28px; }
@@ -63,6 +64,18 @@
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .img-preview { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-top: 10px; }
         .name-badge { display: inline-block; background: var(--green-light); color: var(--green-dark); font-size: 13px; font-weight: 700; padding: 4px 14px; border-radius: 8px; letter-spacing: .5px; }
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: 12px;
+            padding: 18px 16px; text-align: center; cursor: pointer;
+            transition: border-color .2s, background .2s; background: #fafafa;
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--green); background: var(--green-light); }
+        .upload-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-zone .uz-icon { font-size: 22px; color: var(--green); margin-bottom: 6px; }
+        .upload-zone .uz-text { font-size: 13px; font-weight: 600; color: var(--text); }
+        .upload-zone .uz-sub  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
         .card-footer { padding: 20px 28px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
         .btn { padding: 11px 24px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; }
         .btn-green { background: linear-gradient(135deg, var(--green-mid), var(--green)); color: #fff; }
@@ -93,12 +106,11 @@
         <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
         <span class="nav-section-label">Store</span>
         <a href="{{ url_for('add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
-        <a href="{{ url_for('admin_dashboard') }}" class="nav-item active"><i class="fas fa-boxes"></i> Inventory</a>
+        <a href="{{ url_for('admin_inventory') }}" class="nav-item active"><i class="fas fa-boxes"></i> Inventory</a>
         <span class="nav-section-label">People</span>
-        <a href="{{ url_for('admin_customers') }}" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
         <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
-        <span class="nav-section-label">Settings</span>
-        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank"><i class="fas fa-store"></i> View Store</a>
+
     </nav>
     <div class="sidebar-footer">
         <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
@@ -125,14 +137,18 @@
 
         <div class="card">
             <div class="card-header">
+                {% if item[5] and not item[5].startswith('https://via.placeholder') %}
                 <img src="{{ item[5] }}" alt="{{ item[1] }}"
-                     onerror="this.src='https://via.placeholder.com/50x50/dcfce7/16a34a?text=V'">
+                     onerror="this.outerHTML='<div class=header-avatar>{{ item[1][0]|upper }}</div>'">
+                {% else %}
+                <div class="header-avatar">{{ item[1][0]|upper }}</div>
+                {% endif %}
                 <div class="title">
                     <h3>Editing: <span class="name-badge">{{ item[1]|upper }}</span></h3>
                     <p>Update any field below and save</p>
                 </div>
             </div>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="card-body">
                     <div class="two-col">
                         <div class="field">
@@ -160,10 +176,15 @@
                             </div>
                         </div>
                         <div class="field">
-                            <label>Image URL</label>
-                            <div class="input-wrap">
-                                <i class="fas fa-image"></i>
-                                <input type="text" name="image_url" id="imgUrl" value="{{ item[5] }}" oninput="updatePreview(this.value)">
+                            <label>Update Image <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                            <input type="hidden" name="existing_image_url" value="{{ item[5] }}">
+                            <div class="upload-zone" id="uploadZone">
+                                <input type="file" name="image" id="imgFile" accept="image/*" onchange="previewFile(this)">
+                                <div id="uzContent">
+                                    <div class="uz-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                    <p class="uz-text">Click to replace image</p>
+                                    <p class="uz-sub">PNG, JPG, WEBP, AVIF — max 5 MB · Leave empty to keep current</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -193,12 +214,25 @@
 </div>
 
 <script>
-    function updatePreview(url) {
+    function previewFile(input) {
         const img = document.getElementById('imgPreview');
-        img.src = url;
-        img.style.display = url ? 'block' : 'none';
-        img.onerror = () => img.style.display = 'none';
+        const uzContent = document.getElementById('uzContent');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.style.display = 'block';
+                uzContent.querySelector('.uz-text').textContent = input.files[0].name;
+                uzContent.querySelector('.uz-sub').textContent = (input.files[0].size / 1024).toFixed(1) + ' KB';
+                document.getElementById('uploadZone').style.borderColor = 'var(--green)';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', () => zone.classList.add('dragover'));
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', () => zone.classList.remove('dragover'));
 </script>
 {% include '_alerts.html' %}
 </body>

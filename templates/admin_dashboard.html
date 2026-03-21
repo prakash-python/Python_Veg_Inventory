@@ -119,15 +119,7 @@
 
         .nav-item i { width: 18px; text-align: center; font-size: 15px; }
 
-        .nav-badge {
-            margin-left: auto;
-            background: var(--green);
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 100px;
-        }
+
 
         .sidebar-footer {
             padding: 16px 12px;
@@ -496,24 +488,17 @@
         <a href="{{ url_for('add_item') }}" class="nav-item">
             <i class="fas fa-plus-circle"></i> Add Product
         </a>
-        <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+        <a href="{{ url_for('admin_inventory') }}" class="nav-item">
             <i class="fas fa-boxes"></i> Inventory
-            <span class="nav-badge">{{ items|length }}</span>
         </a>
 
         <span class="nav-section-label">People</span>
-        <a href="{{ url_for('admin_customers') }}" class="nav-item">
-            <i class="fas fa-users"></i> Customers
-            <span class="nav-badge">{{ total_users }}</span>
-        </a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
         <a href="{{ url_for('admin_sales') }}" class="nav-item">
             <i class="fas fa-chart-line"></i> Sales Report
         </a>
 
-        <span class="nav-section-label">Settings</span>
-        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank">
-            <i class="fas fa-store"></i> View Store
-        </a>
+
     </nav>
 
     <div class="sidebar-footer">
@@ -594,18 +579,15 @@
                 <div class="ab-icon ab-purple" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-boxes"></i></div>
                 <span>Inventory</span>
             </a>
-            <a href="{{ url_for('admin_customers') }}" class="action-btn">
-                <div class="ab-icon ab-blue"><i class="fas fa-users"></i></div>
-                <span>Customers</span>
+            <a href="{{ url_for('admin_users') }}" class="action-btn">
+                <div class="ab-icon ab-blue"><i class="fas fa-user-shield"></i></div>
+                <span>Users</span>
             </a>
             <a href="{{ url_for('admin_sales') }}" class="action-btn">
                 <div class="ab-icon ab-amber"><i class="fas fa-chart-bar"></i></div>
                 <span>Sales Report</span>
             </a>
-            <a href="{{ url_for('landing') }}" class="action-btn" target="_blank">
-                <div class="ab-icon ab-red"><i class="fas fa-store"></i></div>
-                <span>View Store</span>
-            </a>
+
         </div>
 
         <!-- Weekly Trend Charts -->

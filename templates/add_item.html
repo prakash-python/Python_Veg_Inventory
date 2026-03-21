@@ -62,7 +62,23 @@
         }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; }
-        .img-preview { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-top: 10px; display: none; }
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--border); border-radius: 12px;
+            padding: 24px 20px; text-align: center; cursor: pointer;
+            transition: border-color .2s, background .2s; background: #fafafa;
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--green); background: var(--green-light); }
+        .upload-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-zone .uz-icon { font-size: 28px; color: var(--green); margin-bottom: 8px; }
+        .upload-zone .uz-text { font-size: 13px; font-weight: 600; color: var(--text); }
+        .upload-zone .uz-sub  { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+        .img-preview {
+            width: 90px; height: 90px; border-radius: 10px; object-fit: cover;
+            border: 2px solid var(--green); margin-top: 12px; display: none;
+            box-shadow: 0 4px 12px rgba(22,163,74,.2);
+        }
         .card-footer { padding: 20px 28px; border-top: 1px solid var(--border); display: flex; gap: 12px; }
         .btn { padding: 11px 24px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all .2s; }
         .btn-green { background: linear-gradient(135deg, var(--green-mid), var(--green)); color: #fff; }
@@ -95,10 +111,9 @@
         <a href="{{ url_for('add_item') }}" class="nav-item active"><i class="fas fa-plus-circle"></i> Add Product</a>
         <a href="{{ url_for('admin_inventory') }}" class="nav-item"><i class="fas fa-boxes"></i> Inventory</a>
         <span class="nav-section-label">People</span>
-        <a href="{{ url_for('admin_customers') }}" class="nav-item"><i class="fas fa-users"></i> Customers</a>
+        <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
         <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
-        <span class="nav-section-label">Settings</span>
-        <a href="{{ url_for('landing') }}" class="nav-item" target="_blank"><i class="fas fa-store"></i> View Store</a>
+
     </nav>
     <div class="sidebar-footer">
         <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
@@ -128,7 +143,7 @@
                 <h3><i class="fas fa-plus-circle" style="color:var(--green);margin-right:8px;"></i>New Product Details</h3>
                 <p>Fill in all fields to add a new vegetable to your store</p>
             </div>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <div class="card-body">
                     <div class="two-col">
                         <div class="field">
@@ -166,15 +181,17 @@
                     </div>
 
                     <div class="field">
-                        <label>Image URL</label>
-                        <div class="input-wrap">
-                            <i class="fas fa-image"></i>
-                            <input type="url" name="image_url" id="imgUrl"
-                                   placeholder="https://... or /static/images/tomato.png"
-                                   oninput="previewImg(this.value)">
+                        <label>Product Image</label>
+                        <div class="upload-zone" id="uploadZone">
+                            <input type="file" name="image" id="imgFile" accept="image/*" onchange="previewFile(this)">
+                            <div id="uzContent">
+                                <div class="uz-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                <p class="uz-text">Click to upload or drag &amp; drop</p>
+                                <p class="uz-sub">PNG, JPG, JPEG, WEBP, AVIF — max 5 MB</p>
+                            </div>
                         </div>
                         <img id="imgPreview" class="img-preview" alt="preview">
-                        <p class="hint">Leave empty to use a default placeholder</p>
+                        <p class="hint">Leave empty to use an auto-generated placeholder</p>
                     </div>
 
                     <div class="field">
@@ -198,16 +215,27 @@
 </div>
 
 <script>
-    function previewImg(url) {
+    function previewFile(input) {
         const img = document.getElementById('imgPreview');
-        if (url) {
-            img.src = url;
-            img.style.display = 'block';
-            img.onerror = () => img.style.display = 'none';
-        } else {
-            img.style.display = 'none';
+        const uzContent = document.getElementById('uzContent');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                img.src = e.target.result;
+                img.style.display = 'block';
+                uzContent.querySelector('.uz-text').textContent = input.files[0].name;
+                uzContent.querySelector('.uz-sub').textContent = (input.files[0].size / 1024).toFixed(1) + ' KB';
+                document.getElementById('uploadZone').style.borderColor = 'var(--green)';
+            };
+            reader.readAsDataURL(input.files[0]);
         }
     }
+
+    // Drag-and-drop highlight
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', () => zone.classList.add('dragover'));
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', () => zone.classList.remove('dragover'));
 </script>
 {% include '_alerts.html' %}
 </body>
