@@ -9,6 +9,9 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = 'vegmart_secret_key_2024'
 
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 DATABASE = 'vegmart.db'
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'}

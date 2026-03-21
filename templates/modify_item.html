@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Product – VEGMART Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         :root {
-            --sidebar-w: 260px; --green: #16a34a; --green-dark: #15803d;
-            --green-light: #dcfce7; --green-mid: #22c55e;
-            --dark: #0f172a; --sidebar-bg: #0f172a; --content-bg: #f1f5f9;
-            --card-bg: #ffffff; --text: #1e293b; --text-muted: #64748b;
-            --border: #e2e8f0; --radius: 14px;
-            --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+            --sidebar-w: 260px;
+            --green: #16a34a;
+            --green-dark: #15803d;
+            --green-light: #dcfce7;
+            --green-mid: #22c55e;
+            --dark: #0f172a;
+            --sidebar-bg: #0f172a;
+            --content-bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 14px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 4px 16px rgba(0, 0, 0, .06);
         }
         body { font-family: 'Inter', sans-serif; background: var(--content-bg); color: var(--text); display: flex; min-height: 100vh; }
         .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
@@ -57,9 +74,18 @@
             border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px;
             color: var(--text); background: #fff; outline: none; transition: border-color .2s, box-shadow .2s;
         }
-        textarea.no-icon { padding-left: 14px; }
-        .input-wrap input:focus, .input-wrap textarea:focus {
-            border-color: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+
+        .sidebar {
+            width: var(--sidebar-w);
+            min-height: 100vh;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
         }
         .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .img-preview { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); margin-top: 10px; }
@@ -86,12 +112,29 @@
         .flash-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
         .flash-error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .main { margin-left: 0; } .topbar { padding: 14px 16px; } .content { padding: 20px 16px; }
-            .two-col { grid-template-columns: 1fr; }
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 14px 16px;
+            }
+
+            .content {
+                padding: 20px 16px;
+            }
+
+            .two-col {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
+
 <body>
 <aside class="sidebar">
     <div class="sidebar-brand">
@@ -189,29 +232,85 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom:16px;">
-                        <img id="imgPreview" src="{{ item[5] }}" class="img-preview" alt="preview"
-                             onerror="this.style.display='none'">
-                    </div>
+        <div class="content">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
 
-                    <div class="field">
-                        <label>Description</label>
-                        <div class="input-wrap">
-                            <textarea name="description" class="no-icon" rows="3"
-                                      style="resize:vertical;">{{ item[6] if item[6] else '' }}</textarea>
+            <!-- Flash handled by SweetAlert2 -->
+
+            <div class="card">
+                <div class="card-header">
+                    <img src="{{ item[5] }}" alt="{{ item[1] }}"
+                        onerror="this.src='https://via.placeholder.com/50x50/dcfce7/16a34a?text=V'">
+                    <div class="title">
+                        <h3>Editing: <span class="name-badge">{{ item[1]|upper }}</span></h3>
+                        <p>Update any field below and save</p>
+                    </div>
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="card-body">
+                        <div class="two-col">
+                            <div class="field">
+                                <label>Selling Price (₹/kg)</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-tag"></i>
+                                    <input type="number" name="price" value="{{ item[2] }}" step="0.01" min="0"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label>Stock Quantity (kg)</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-weight-hanging"></i>
+                                    <input type="number" name="quantity" value="{{ item[3] }}" step="0.1" min="0"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="two-col">
+                            <div class="field">
+                                <label>Cost Price (₹/kg)</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-rupee-sign"></i>
+                                    <input type="number" name="cost_price" value="{{ item[4] }}" step="0.01" min="0"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label>Product Image</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-upload"></i>
+                                    <input type="file" name="image" id="imgFile" accept="image/*"
+                                        style="padding-left: 38px;" onchange="previewImgFile(this)">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <img id="imgPreview" src="{{ item[5] }}" class="img-preview" alt="preview"
+                                onerror="this.style.display='none'">
+                        </div>
+
+                        <div class="field">
+                            <label>Description</label>
+                            <div class="input-wrap">
+                                <textarea name="description" class="no-icon" rows="3"
+                                    style="resize:vertical;">{{ item[6] if item[6] else '' }}</textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-green">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
-                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-green">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 <script>
     function previewFile(input) {
@@ -236,4 +335,5 @@
 </script>
 {% include '_alerts.html' %}
 </body>
+
 </html>
