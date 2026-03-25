@@ -58,7 +58,11 @@ def init_db():
     
     c.execute('''CREATE TABLE IF NOT EXISTS sales
                  (id INTEGER PRIMARY KEY, item_name TEXT, quantity REAL, price REAL, total REAL, 
-                  customer_name TEXT, date TIMESTAMP)''')
+                  customer_name TEXT, date TIMESTAMP, order_id TEXT)''')
+    try:
+        c.execute('ALTER TABLE sales ADD COLUMN order_id TEXT')
+    except:
+        pass
     
     # Insert default items with images from reliable sources
     default_items = [
@@ -148,7 +152,6 @@ def login():
                 session['user_type'] = 'customer'
                 session['username'] = user[1]
                 session['user_id'] = user[0]
-                flash('Login successful!', 'success')
                 return redirect(url_for('customer_shop'))
             else:
                 flash('Invalid username or password', 'error')
@@ -160,7 +163,6 @@ def login():
             if username == 'admin' and password == 'Admin@123':
                 session['user_type'] = 'admin'
                 session['username'] = 'admin'
-                flash('Admin login successful!', 'success')
                 return redirect(url_for('admin_dashboard'))
             else:
                 flash('Invalid admin credentials', 'error')
@@ -226,7 +228,6 @@ def register():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Logged out successfully', 'success')
     return redirect(url_for('landing'))
 
 # Admin Routes
@@ -249,25 +250,53 @@ def admin_dashboard():
     c.execute('SELECT COUNT(*) FROM items')
     total_items = c.fetchone()[0]
 
-    # Weekly bar chart: top vegetables by quantity sold in last 7 days
+    # Bar chart: top vegetables by quantity sold — last 7 days, fallback to all-time
     c.execute('''
         SELECT item_name, SUM(quantity) as total_qty FROM sales
         WHERE date >= datetime('now', '-7 days')
         GROUP BY item_name ORDER BY total_qty DESC LIMIT 5
     ''')
     bar_rows = c.fetchall()
+    if not bar_rows:
+        c.execute('''
+            SELECT item_name, SUM(quantity) as total_qty FROM sales
+            GROUP BY item_name ORDER BY total_qty DESC LIMIT 5
+        ''')
+        bar_rows = c.fetchall()
     bar_labels = [r[0].title() for r in bar_rows]
     bar_data   = [round(float(r[1]), 2) for r in bar_rows]
 
-    # Weekly line chart: daily total revenue for last 7 days
+    # Line chart: daily revenue — last 7 days, fallback to last 30 days
     c.execute('''
         SELECT date(date) as day, SUM(total) FROM sales
         WHERE date >= datetime('now', '-7 days')
         GROUP BY day ORDER BY day ASC
     ''')
     line_rows = c.fetchall()
+    if not line_rows:
+        c.execute('''
+            SELECT date(date) as day, SUM(total) FROM sales
+            GROUP BY day ORDER BY day ASC LIMIT 30
+        ''')
+        line_rows = c.fetchall()
     line_labels = [r[0] for r in line_rows]
     line_data   = [round(float(r[1]), 2) for r in line_rows]
+
+    # Itemized profit: revenue - cost per item (all-time)
+    c.execute('''
+        SELECT s.item_name,
+               SUM(s.quantity)                            AS total_qty,
+               SUM(s.total)                               AS revenue,
+               COALESCE(i.cost_price, 0)                  AS cost_price,
+               SUM(s.total) - SUM(s.quantity * COALESCE(i.cost_price, 0)) AS profit
+        FROM sales s
+        LEFT JOIN items i ON LOWER(s.item_name) = LOWER(i.name)
+        GROUP BY s.item_name
+        ORDER BY profit DESC
+    ''')
+    profit_rows = c.fetchall()
+    # Each row: (item_name, total_qty, revenue, cost_price, profit)
+    total_profit = sum(float(r[4]) for r in profit_rows)
 
     conn.close()
 
@@ -277,7 +306,8 @@ def admin_dashboard():
                            total_revenue=total_revenue,
                            total_items=total_items,
                            bar_labels=bar_labels, bar_data=bar_data,
-                           line_labels=line_labels, line_data=line_data)
+                           line_labels=line_labels, line_data=line_data,
+                           profit_rows=profit_rows, total_profit=total_profit)
 
 @app.route('/admin/add-item', methods=['GET', 'POST'])
 @login_required
@@ -720,14 +750,17 @@ def checkout():
             c.execute('INSERT OR IGNORE INTO customers (name, phone, date_added) VALUES (?, ?, ?)',
                      (name, phone, datetime.now()))
 
+            order_id = f"ORD-{int(datetime.now().timestamp())}"
+            order_date = datetime.now()
             total_amount = 0
+            
             for item_id, qty in cart.items():
                 c.execute('SELECT * FROM items WHERE id=?', (int(item_id),))
                 item = c.fetchone()
                 if item:
                     item_total = item[2] * qty
-                    c.execute('INSERT INTO sales (item_name, quantity, price, total, customer_name, date) VALUES (?, ?, ?, ?, ?, ?)',
-                             (item[1], qty, item[2], item_total, name, datetime.now()))
+                    c.execute('INSERT INTO sales (item_name, quantity, price, total, customer_name, date, order_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                             (item[1], qty, item[2], item_total, name, order_date, order_id))
                     new_qty = item[3] - qty
                     c.execute('UPDATE items SET quantity=? WHERE id=?', (new_qty, item[0]))
                     total_amount += item_total
@@ -761,12 +794,40 @@ def my_orders():
     c.execute('SELECT fullname FROM users WHERE id=?', (user_id,))
     user_row = c.fetchone()
     customer_name = user_row[0] if user_row and user_row[0] else session.get('username', '')
-    # Fetch all orders for this customer, newest first
-    c.execute('''SELECT item_name, quantity, price, total, date 
+    # Fetch all sales for this customer, ordered by newest first
+    c.execute('''SELECT item_name, quantity, price, total, date, order_id 
                  FROM sales WHERE customer_name=? ORDER BY date DESC''', (customer_name,))
-    orders = c.fetchall()
+    sales = c.fetchall()
     conn.close()
-    return render_template('my_orders.html', orders=orders, customer_name=customer_name)
+    
+    # Group sales by order_id (or fallback to grouping by date for legacy data)
+    orders_dict = {}
+    for row in sales:
+        item_name, qty, price, total, date_str, order_id = row
+        # Use order_id if present, otherwise fallback to exactly matching date
+        key = order_id if order_id else date_str
+        
+        if key not in orders_dict:
+            orders_dict[key] = {
+                'order_id': key,
+                'date': date_str,
+                'products': [],
+                'total_amount': 0
+            }
+        
+        orders_dict[key]['products'].append({
+            'name': item_name,
+            'qty': qty,
+            'price': price,
+            'total': total
+        })
+        orders_dict[key]['total_amount'] += total
+        
+    # Convert to list and ensure sorted by date descending again
+    orders_list = list(orders_dict.values())
+    orders_list.sort(key=lambda x: x['date'], reverse=True)
+    
+    return render_template('my_orders.html', orders=orders_list, customer_name=customer_name)
 
 @app.route('/api/cart-total')
 @login_required

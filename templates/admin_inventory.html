@@ -588,8 +588,8 @@
                                     <th>Cost Price</th>
                                     <th>Stock</th>
                                     <th>Status</th>
-                                    <th>Added By</th>
-                                    <th>Added On</th>
+                                    <!-- <th>Added By</th>
+                                    <th>Added On</th> -->
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -618,19 +618,19 @@
                                     {% elif item[3] < 5 %}<span class="stock-badge stock-low">Low Stock</span>
                                         {% else %}<span class="stock-badge stock-ok">In Stock</span>{% endif %}
                                 </td>
-                                <td>
+                                <!-- <td>
                                     {% if item|length > 7 and item[8] %}
                                     <div style="font-size:12px;font-weight:600;color:var(--text-muted);">{{ item[8] }}</div>
                                     {% else %}
                                     <div style="font-size:12px;color:#cbd5e1;">admin</div>
-                                    {% endif %}
+                                    {% endif %} -->
                                 </td>
-                                <td>
+                                <!-- <td>
                                     {% if item|length > 7 and item[7] %}
                                     <div style="font-size:11px;color:var(--text-muted);">{{ (item[7]|string)[:10] }}</div>
                                     {% else %}
                                     <div style="font-size:12px;color:#cbd5e1;">-</div>
-                                    {% endif %}
+                                    {% endif %} -->
                                 </td>
                                 <td>
                                     <div class="actions-cell">
@@ -712,7 +712,7 @@
                             }
                         })
                         .catch(err => console.error("AJAX Search failed:", err));
-                    }, 400); // 400ms debounce
+                    }, 200); // 200ms debounce
                 });
             });
 
