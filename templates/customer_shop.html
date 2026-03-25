@@ -181,6 +181,19 @@
                 font-size: 24px;
             }
         }
+        .card-msg {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        .card-msg.success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .card-msg.error   { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -218,8 +231,6 @@
         </div>
     </nav>
 
-
-
     <!-- Main Content -->
     <div class="container">
         <h1 class="page-title">🛒 Shop Fresh Vegetables</h1>
@@ -232,7 +243,7 @@
                     <h3 class="product-name">{{ item[1]|upper }}</h3>
                     <p class="product-description">{{ item[6] or 'Fresh and healthy vegetables' }}</p>
                     <p class="product-stock">
-                        <i class="fas fa-check-circle"></i> 
+                        <i class="fas fa-check-circle"></i>
                         {{ item[3] }} kg available
                     </p>
                     <div class="price-section">
@@ -242,6 +253,7 @@
                     <button class="btn-add-cart" onclick="addToCart({{ item[0] }})">
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
+                    <div class="card-msg" id="msg-{{ item[0] }}"></div>
                 </div>
             </div>
             {% endfor %}
@@ -252,46 +264,39 @@
     <script>
         function addToCart(itemId) {
             const quantity = parseFloat(document.getElementById('qty-' + itemId).value);
-            
-            if (quantity <= 0) {
-                Swal.fire({ toast:true, position:'top-end', icon:'warning',
-                    title:'Please enter a valid quantity', showConfirmButton:false, timer:3000 });
+            const msgEl = document.getElementById('msg-' + itemId);
+
+            if (quantity <= 0 || isNaN(quantity)) {
+                showCardMsg(msgEl, 'Please enter a valid quantity', 'error');
                 return;
             }
-            
+
             fetch('/add-to-cart', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    item_id: itemId,
-                    quantity: quantity
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ item_id: itemId, quantity: quantity })
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    showNotification(data.message, 'success');
+                    showCardMsg(msgEl, '✓ Added to cart!', 'success');
                     document.getElementById('qty-' + itemId).value = '1';
                 } else {
-                    showNotification(data.message, 'error');
+                    showCardMsg(msgEl, '✗ ' + data.message, 'error');
                 }
-            });
+            })
+            .catch(() => showCardMsg(msgEl, '✗ Something went wrong', 'error'));
         }
 
-        function showNotification(message, type) {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: type === 'success' ? 'success' : 'error',
-                title: message,
-                showConfirmButton: false,
-                timer: 5000,
-                timerProgressBar: true
-            });
+        function showCardMsg(el, message, type) {
+            el.textContent = message;
+            el.className = 'card-msg ' + type;
+            el.style.display = 'block';
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => { el.style.display = 'none'; }, 3000);
         }
     </script>
     {% include '_alerts.html' %}
 </body>
 </html>
+
