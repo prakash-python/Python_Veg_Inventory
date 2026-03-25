@@ -455,9 +455,10 @@
             </div>
 
             <div class="checkbox-row">
-                <input type="checkbox" id="terms" required>
-                <label for="terms">I agree to the <a href="#" style="color:var(--green-primary);font-weight:600;">Terms & Conditions</a> and <a href="#" style="color:var(--green-primary);font-weight:600;">Privacy Policy</a></label>
+                <input type="checkbox" id="terms">
+                <label for="terms">I agree to the <a href="#" style="color:var(--green-primary);font-weight:600;">Terms & Conditions</a> and <a href="#" style="color:var(--green-primary);font-weight:600;">Privacy Policy</a> <span style="color:#dc2626;">*</span></label>
             </div>
+            <div id="msg-terms" style="font-size:13px;color:#dc2626;margin-top:4px;display:none;"><i class="fas fa-times-circle"></i> Please accept the Terms &amp; Conditions to continue</div>
 
             <button type="submit" class="btn-submit">
                 <i class="fas fa-user-plus"></i> Create My Account
@@ -571,7 +572,14 @@
         const pw = validatePassword(document.getElementById('password'));
         const cp = validateConfirm(document.getElementById('confirm_password'));
         const tc = document.getElementById('terms');
-        if (!tc.checked) { alert('Please accept the Terms & Conditions'); return false; }
+        const tMsg = document.getElementById('msg-terms');
+        if (!tc.checked) {
+            tMsg.style.display = 'block';
+            tMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        } else {
+            tMsg.style.display = 'none';
+        }
         return n && u && e && p && pw && cp;
     }
 </script>
