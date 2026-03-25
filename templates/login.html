@@ -397,7 +397,7 @@
         <h2>Welcome Back 👋</h2>
         <p class="welcome-sub">Sign in to continue shopping fresh vegetables</p>
 
-        <!-- Flash handled by SweetAlert2 -->
+
 
         <!-- Role Tabs -->
         <div class="role-tabs">
@@ -413,6 +413,9 @@
         <div class="form-section active" id="section-customer">
             <form method="POST">
                 <input type="hidden" name="role" value="customer">
+                {% if error and request.form.get('role','customer') == 'customer' %}
+                <div class="flash-box flash-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+                {% endif %}
                 <div class="field">
                     <label for="cust-user">Username</label>
                     <div class="input-wrap">
@@ -445,6 +448,9 @@
             </div>
             <form method="POST">
                 <input type="hidden" name="role" value="admin">
+                {% if error and request.form.get('role') == 'admin' %}
+                <div class="flash-box flash-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+                {% endif %}
                 <div class="field">
                     <label for="adm-user">Admin Username</label>
                     <div class="input-wrap">

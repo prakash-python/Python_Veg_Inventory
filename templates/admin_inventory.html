@@ -697,20 +697,9 @@
 
     <script>
         function confirmDelete(itemId, itemName) {
-            Swal.fire({
-                title: 'Delete Product',
-                text: `Are you sure you want to remove ${itemName.toUpperCase()}? This action cannot be undone.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Yes, remove it!',
-                customClass: { popup: 'swal-vegmart-popup', title: 'swal-vegmart-title' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = `/admin/remove-item/${itemId}`;
-                }
-            });
+            if (confirm('Remove ' + itemName.toUpperCase() + '? This action cannot be undone.')) {
+                window.location.href = `/admin/remove-item/${itemId}`;
+            }
         }
 
         // Seamless AJAX Search to keep URL perfectly clean!

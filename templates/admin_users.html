@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
@@ -236,19 +236,9 @@
 
 <script>
     function confirmDelete(id, name) {
-        Swal.fire({
-            title: 'Delete ' + name + '?',
-            text: "They will instantly lose access to the system.",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#94a3b8',
-            confirmButtonText: 'Yes, delete user'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = "/admin/remove-user/" + id;
-            }
-        });
+        if (confirm('Delete ' + name + '? They will instantly lose access to the system.')) {
+            window.location.href = "/admin/remove-user/" + id;
+        }
     }
 
     // Seamless AJAX Search to keep URL perfectly clean!
