@@ -94,6 +94,9 @@
             .topbar { padding: 14px 16px; }
             .content { padding: 20px 16px; }
         }
+
+        .btn-sm { padding: 7px 16px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all .2s; min-width: 32px; text-align: center; }
+        .btn-sm:hover { filter: brightness(0.95); }
     </style>
 </head>
 
@@ -108,16 +111,16 @@
         </div>
         <nav class="sidebar-nav">
             <span class="nav-section-label">Main</span>
-            <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{{ url_for('sales.admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
             <span class="nav-section-label">Store</span>
-            <a href="{{ url_for('add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
-            <a href="{{ url_for('admin_inventory') }}" class="nav-item"><i class="fas fa-boxes"></i> Inventory</a>
+            <a href="{{ url_for('item.add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
+            <a href="{{ url_for('item.admin_inventory') }}" class="nav-item"><i class="fas fa-boxes"></i> Inventory</a>
             <span class="nav-section-label">People</span>
-            <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
-            <a href="{{ url_for('admin_sales') }}" class="nav-item active"><i class="fas fa-chart-line"></i> Sales Report</a>
+            <a href="{{ url_for('auth.admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
+            <a href="{{ url_for('sales.admin_sales') }}" class="nav-item active"><i class="fas fa-chart-line"></i> Sales Report</a>
         </nav>
         <div class="sidebar-footer">
-            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+            <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
         </div>
     </aside>
 
@@ -204,6 +207,32 @@
                                 {% endif %}
                             </tbody>
                         </table>
+                    </div>
+                <!-- Pagination -->
+                <div class="pagination-container" style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Page {{ page }} of {{ total_pages }}</span>
+                    <div style="display:flex; gap:6px;">
+                        {% if page > 1 %}
+                        {% set p = page - 1 %}
+                        <a href="?page={{ p }}&search={{ search }}&date={{ date }}" class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);"><i class="fas fa-chevron-left"></i> Prev</a>
+                        {% else %}
+                        <span class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:#cbd5e1; cursor:not-allowed;"><i class="fas fa-chevron-left"></i> Prev</span>
+                        {% endif %}
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                                <a href="?page={{ p }}&search={{ search }}&date={{ date }}" class="btn-sm" style="{% if p == page %}background:var(--green); color:#fff; border:1px solid var(--green); cursor:default;{% else %}background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);{% endif %}">{{ p }}</a>
+                            {% elif p == page - 3 or p == page + 3 %}
+                                <span class="btn-sm" style="background:transparent; color:var(--text-muted); cursor:default;">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page < total_pages %}
+                        {% set p = page + 1 %}
+                        <a href="?page={{ p }}&search={{ search }}&date={{ date }}" class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);">Next <i class="fas fa-chevron-right"></i></a>
+                        {% else %}
+                        <span class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:#cbd5e1; cursor:not-allowed;">Next <i class="fas fa-chevron-right"></i></span>
+                        {% endif %}
                     </div>
                 </div>
             </div><!-- /#salesContainer -->

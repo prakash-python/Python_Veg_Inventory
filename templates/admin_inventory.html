@@ -513,18 +513,18 @@
         </div>
         <nav class="sidebar-nav">
             <span class="nav-section-label">Main</span>
-            <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{{ url_for('sales.admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
             <span class="nav-section-label">Store</span>
-            <a href="{{ url_for('add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
-            <a href="{{ url_for('admin_inventory') }}" class="nav-item active"><i class="fas fa-boxes"></i>
+            <a href="{{ url_for('item.add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
+            <a href="{{ url_for('item.admin_inventory') }}" class="nav-item active"><i class="fas fa-boxes"></i>
                 Inventory</a>
             <span class="nav-section-label">People</span>
-            <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
-            <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
+            <a href="{{ url_for('auth.admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
+            <a href="{{ url_for('sales.admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
 
         </nav>
         <div class="sidebar-footer">
-            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+            <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
         </div>
     </aside>
 
@@ -577,7 +577,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-boxes" style="color:var(--green);margin-right:8px;"></i>Product List</h3>
-                        <a href="{{ url_for('add_item') }}" class="btn-sm btn-green"><i class="fas fa-plus"></i> Add Product</a>
+                        <a href="{{ url_for('item.add_item') }}" class="btn-sm btn-green"><i class="fas fa-plus"></i> Add Product</a>
                     </div>
                     <div style="overflow-x:auto;">
                         <table class="data-table">
@@ -634,7 +634,7 @@
                                 </td>
                                 <td>
                                     <div class="actions-cell">
-                                        <a href="{{ url_for('modify_item', item_id=item[0]) }}"
+                                        <a href="{{ url_for('item.modify_item', item_id=item[0]) }}"
                                             class="btn-sm btn-amber"><i class="fas fa-edit"></i> Edit</a>
                                         <button type="button" class="btn-sm btn-red"
                                             onclick="confirmDelete('{{ item[0] }}', '{{ item[1] }}')"><i
@@ -648,10 +648,10 @@
                                     <i class="fas fa-box-open"
                                         style="font-size:36px;opacity:.25;margin-bottom:12px;display:block;"></i>
                                     {% if search or price_min or price_max %}
-                                    No products match your filters. <a href="{{ url_for('admin_inventory') }}"
+                                    No products match your filters. <a href="{{ url_for('item.admin_inventory') }}"
                                         style="color:var(--green);">Clear filters</a>
                                     {% else %}
-                                    No products yet. <a href="{{ url_for('add_item') }}" style="color:var(--green);">Add
+                                    No products yet. <a href="{{ url_for('item.add_item') }}" style="color:var(--green);">Add
                                         one now</a>
                                     {% endif %}
                                 </td>
@@ -659,9 +659,40 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
                 </div>
-            </div>
-        </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container" style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size:13px; color:var(--text-muted); font-weight:500;">Page {{ page }} of {{ total_pages }}</span>
+                    <div style="display:flex; gap:6px;">
+                        {% if page > 1 %}
+                        {% set p = page - 1 %}
+                        <a href="?page={{ p }}&search={{ search }}&date_created={{ date_created }}&price_type={{ price_type }}&price_range={{ price_range }}" class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);"><i class="fas fa-chevron-left"></i> Prev</a>
+                        {% else %}
+                        <span class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:#cbd5e1; cursor:not-allowed;"><i class="fas fa-chevron-left"></i> Prev</span>
+                        {% endif %}
+                        
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+                                <a href="?page={{ p }}&search={{ search }}&date_created={{ date_created }}&price_type={{ price_type }}&price_range={{ price_range }}" class="btn-sm" style="{% if p == page %}background:var(--green); color:#fff; border:1px solid var(--green); cursor:default;{% else %}background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);{% endif %}">{{ p }}</a>
+                            {% elif p == page - 3 or p == page + 3 %}
+                                <span class="btn-sm" style="background:transparent; color:var(--text-muted); cursor:default;">...</span>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page < total_pages %}
+                        {% set p = page + 1 %}
+                        <a href="?page={{ p }}&search={{ search }}&date_created={{ date_created }}&price_type={{ price_type }}&price_range={{ price_range }}" class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:var(--text-muted);">Next <i class="fas fa-chevron-right"></i></a>
+                        {% else %}
+                        <span class="btn-sm" style="background:var(--card-bg); border:1px solid var(--border); color:#cbd5e1; cursor:not-allowed;">Next <i class="fas fa-chevron-right"></i></span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                </div>
+</div>
+</div>
     </div>
 
     <script>

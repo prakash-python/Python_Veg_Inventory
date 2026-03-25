@@ -369,7 +369,9 @@
         <h2>Create Your Account 🌱</h2>
         <p class="welcome-sub">Start shopping fresh vegetables today</p>
 
-        <!-- Flash handled by SweetAlert2 -->
+        {% if error %}
+        <div class="flash-box flash-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+        {% endif %}
 
         <form method="POST" id="registerForm" novalidate onsubmit="return validateForm()">
 
@@ -380,7 +382,7 @@
                     <div class="input-wrap">
                         <i class="fas fa-user icon-left"></i>
                         <input type="text" id="fullname" name="fullname" placeholder="e.g. Ravi Kumar"
-                               oninput="validateName(this)" required>
+                               value="{{ fullname|default('') }}" oninput="validateName(this)" required>
                     </div>
                     <div class="field-msg" id="msg-name"></div>
                 </div>
@@ -391,7 +393,7 @@
                     <div class="input-wrap">
                         <i class="fas fa-at icon-left"></i>
                         <input type="text" id="username" name="username" placeholder="e.g. ravi_k"
-                               oninput="validateUsername(this)" required>
+                               value="{{ username|default('') }}" oninput="validateUsername(this)" required>
                     </div>
                     <div class="field-msg" id="msg-username"></div>
                 </div>
@@ -403,7 +405,7 @@
                 <div class="input-wrap">
                     <i class="fas fa-envelope icon-left"></i>
                     <input type="email" id="email" name="email" placeholder="you@example.com"
-                           oninput="validateEmail(this)" required>
+                           value="{{ email|default('') }}" oninput="validateEmail(this)" required>
                 </div>
                 <div class="field-msg" id="msg-email"></div>
             </div>
@@ -414,7 +416,7 @@
                 <div class="input-wrap">
                     <i class="fas fa-phone icon-left"></i>
                     <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number"
-                           maxlength="10" oninput="validatePhone(this)" required>
+                           value="{{ phone|default('') }}" maxlength="10" oninput="validatePhone(this)" required>
                 </div>
                 <div class="field-msg" id="msg-phone"></div>
             </div>
@@ -462,7 +464,7 @@
             </button>
         </form>
 
-        <p class="login-note">Already have an account? <a href="{{ url_for('login') }}">Sign in here</a></p>
+        <p class="login-note">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in here</a></p>
     </div>
 </div>
 
@@ -573,6 +575,6 @@
         return n && u && e && p && pw && cp;
     }
 </script>
-{% include '_alerts.html' %}
+
 </body>
 </html>

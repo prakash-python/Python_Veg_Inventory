@@ -146,17 +146,17 @@
     </div>
     <nav class="sidebar-nav">
         <span class="nav-section-label">Main</span>
-        <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{{ url_for('sales.admin_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
         <span class="nav-section-label">Store</span>
-        <a href="{{ url_for('add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
-        <a href="{{ url_for('admin_inventory') }}" class="nav-item active"><i class="fas fa-boxes"></i> Inventory</a>
+        <a href="{{ url_for('item.add_item') }}" class="nav-item"><i class="fas fa-plus-circle"></i> Add Product</a>
+        <a href="{{ url_for('item.admin_inventory') }}" class="nav-item active"><i class="fas fa-boxes"></i> Inventory</a>
         <span class="nav-section-label">People</span>
-        <a href="{{ url_for('admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
-        <a href="{{ url_for('admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
+        <a href="{{ url_for('auth.admin_users') }}" class="nav-item"><i class="fas fa-user-shield"></i> Users</a>
+        <a href="{{ url_for('sales.admin_sales') }}" class="nav-item"><i class="fas fa-chart-line"></i> Sales Report</a>
 
     </nav>
     <div class="sidebar-footer">
-        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        <a href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
     </div>
 </aside>
 
@@ -172,7 +172,7 @@
     </div>
 
     <div class="content">
-        <a href="{{ url_for('admin_inventory') }}" class="back-link">
+        <a href="{{ url_for('item.admin_inventory') }}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Inventory
         </a>
 
@@ -244,7 +244,7 @@
                         <button type="submit" class="btn btn-green">
                             <i class="fas fa-save"></i> Save Changes
                         </button>
-                        <a href="{{ url_for('admin_inventory') }}" class="btn btn-secondary">Cancel</a>
+                        <a href="{{ url_for('item.admin_inventory') }}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>

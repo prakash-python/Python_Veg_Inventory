@@ -165,15 +165,15 @@
 </head>
 <body>
 <nav>
-    <a class="nav-brand" href="{{ url_for('customer_shop') }}">🥬 VEGMART</a>
+    <a class="nav-brand" href="{{ url_for('customer.customer_shop') }}">🥬 VEGMART</a>
     <div class="nav-links">
-        <a class="nav-btn nav-btn-outline" href="{{ url_for('my_orders') }}">
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('customer.my_orders') }}">
             <i class="fas fa-box"></i> My Orders
         </a>
-        <a class="nav-btn nav-btn-outline" href="{{ url_for('customer_shop') }}">
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('customer.customer_shop') }}">
             <i class="fas fa-store"></i> Shop
         </a>
-        <a class="nav-btn nav-btn-outline" href="{{ url_for('logout') }}">
+        <a class="nav-btn nav-btn-outline" href="{{ url_for('auth.logout') }}">
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
     </div>
@@ -202,7 +202,7 @@
                 </div>
                 <div class="item-right">
                     <div class="item-total">₹{{ "%.2f"|format(item.total) }}</div>
-                    <a href="{{ url_for('remove_from_cart', item_id=item.id) }}" class="remove-btn">
+                    <a href="{{ url_for('customer.remove_from_cart', item_id=item.id) }}" class="remove-btn">
                         <i class="fas fa-trash-alt"></i> Remove
                     </a>
                 </div>
@@ -223,10 +223,10 @@
                 <span>Total</span>
                 <span>₹{{ "%.2f"|format(total) }}</span>
             </div>
-            <a href="{{ url_for('checkout') }}" class="checkout-btn">
+            <a href="{{ url_for('customer.checkout') }}" class="checkout-btn">
                 <i class="fas fa-bolt"></i> Proceed to Checkout
             </a>
-            <a href="{{ url_for('customer_shop') }}" class="continue-link">
+            <a href="{{ url_for('customer.customer_shop') }}" class="continue-link">
                 ← Continue Shopping
             </a>
         </div>
@@ -237,7 +237,7 @@
         <i class="fas fa-shopping-cart"></i>
         <h3>Your cart is empty</h3>
         <p style="margin: 10px 0 20px;">Browse our fresh vegetables and add something!</p>
-        <a href="{{ url_for('customer_shop') }}" style="
+        <a href="{{ url_for('customer.customer_shop') }}" style="
             display:inline-flex;align-items:center;gap:8px;
             background:linear-gradient(135deg,#22c55e,#15803d);color:#fff;
             padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px;

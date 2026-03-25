@@ -154,8 +154,8 @@
 </head>
 <body>
 <nav>
-    <a class="nav-brand" href="{{ url_for('customer_shop') }}">🥬 VEGMART</a>
-    <a class="nav-btn" href="{{ url_for('view_cart') }}">
+    <a class="nav-brand" href="{{ url_for('customer.customer_shop') }}">🥬 VEGMART</a>
+    <a class="nav-btn" href="{{ url_for('customer.view_cart') }}">
         <i class="fas fa-arrow-left"></i> Back to Cart
     </a>
 </nav>
@@ -243,7 +243,7 @@
                 </form>
 
                 <div style="text-align:center;margin-top:14px;">
-                    <a href="{{ url_for('view_cart') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">
+                    <a href="{{ url_for('customer.view_cart') }}" style="font-size:13px;color:var(--muted);text-decoration:none;">
                         ← Edit Cart
                     </a>
                 </div>

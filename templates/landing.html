@@ -266,10 +266,10 @@
                         <a class="nav-link" href="#about">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-auth btn-login" href="{{ url_for('login') }}">Login</a>
+                        <a class="nav-link btn btn-auth btn-login" href="{{ url_for('auth.login') }}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-auth btn-signup" href="{{ url_for('register') }}">Sign Up</a>
+                        <a class="nav-link btn btn-auth btn-signup" href="{{ url_for('auth.register') }}">Sign Up</a>
                     </li>
                 </ul>
             </div>
@@ -283,7 +283,7 @@
         <div class="container">
             <h1>🥕 Fresh Vegetables Online</h1>
             <p>Farm-to-Table Quality, Delivered Fresh to Your Door</p>
-            <a href="{{ url_for('register') }}" class="btn btn-hero btn-light">Start Shopping</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-hero btn-light">Start Shopping</a>
             <a href="#products" class="btn btn-hero btn-outline-light">View Products</a>
         </div>
     </section>
@@ -331,7 +331,7 @@
                             <p class="product-price">Rs {{ item[2] }}/kg</p>
                             <p class="product-description">{{ item[6] or 'Fresh and healthy' }}</p>
                             <p class="text-muted small">Stock: {{ item[3] }} kg available</p>
-                            <a href="{{ url_for('login') }}" class="btn btn-product">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-product">
                                 <i class="fas fa-shopping-cart"></i> Shop Now
                             </a>
                         </div>
