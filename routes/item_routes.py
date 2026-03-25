@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, session, redirect, url_for, current_app
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -38,13 +38,12 @@ def add_item():
             creator = session.get('username', 'admin')
             insert_item(name, price, quantity, cost_price, image_url, description, datetime.now(), creator)
 
-            flash('Item added successfully!', 'success')
             return redirect(url_for('item.admin_inventory'))
         except Exception as e:
             if 'UNIQUE constraint' in str(e):
-                flash('Item with this name already exists', 'error')
+                return render_template('add_item.html', error='Item with this name already exists')
             else:
-                flash(f'Error: {str(e)}', 'error')
+                return render_template('add_item.html', error=f'Error: {str(e)}')
 
     return render_template('add_item.html')
 
@@ -77,10 +76,9 @@ def modify_item(item_id):
 
             update_item(item_id, price, quantity, cost_price, image_url, description)
 
-            flash('Item modified successfully!', 'success')
             return redirect(url_for('item.admin_inventory'))
         except Exception as e:
-            flash(f'Error: {str(e)}', 'error')
+            return render_template('modify_item.html', item=get_item_by_id(item_id), error=f'Error: {str(e)}')
 
     item = get_item_by_id(item_id)
     return render_template('modify_item.html', item=item)
@@ -90,7 +88,6 @@ def modify_item(item_id):
 @admin_required
 def remove_item(item_id):
     delete_item(item_id)
-    flash('Item removed successfully!', 'success')
     return redirect(url_for('item.admin_inventory'))
 
 @item_bp.route('/admin/inventory', methods=['GET', 'POST'])

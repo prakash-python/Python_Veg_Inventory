@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -28,7 +28,7 @@ def login():
                 session['user_id'] = user['id']
                 return redirect(url_for('customer.customer_shop'))
             else:
-                flash('Invalid username or password', 'error')
+                return render_template('login.html', error='Invalid username or password')
         
         elif role == 'admin':
             username = request.form.get('username')
@@ -39,7 +39,7 @@ def login():
                 session['username'] = 'admin'
                 return redirect(url_for('sales.admin_dashboard'))
             else:
-                flash('Invalid admin credentials', 'error')
+                return render_template('login.html', error='Invalid admin credentials')
     
     return render_template('login.html')
 
@@ -81,7 +81,6 @@ def register():
         try:
             hashed_password = generate_password_hash(password)
             create_user(username, email, hashed_password, fullname, phone, datetime.now())
-            flash('Account created successfully! Please login.', 'success')
             return redirect(url_for('auth.login'))
         except Exception as e:
             if 'UNIQUE constraint' in str(e):
@@ -139,7 +138,6 @@ def add_user():
         
         try:
             create_user(username, email, hashed_password, fullname, phone, datetime.now())
-            flash('System user created successfully!', 'success')
             return redirect(url_for('auth.admin_users'))
         except Exception as e:
             if 'UNIQUE constraint' in str(e):
@@ -169,7 +167,6 @@ def modify_user(user_id):
         try:
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256') if password else None
             update_user(user_id, fullname, email, phone, hashed_password)
-            flash('User account updated successfully!', 'success')
             return redirect(url_for('auth.admin_users'))
         except Exception as e:
             updated_user = dict(user_data)
@@ -178,7 +175,6 @@ def modify_user(user_id):
         
     user = get_user_by_id(user_id)
     if not user:
-        flash('User not found!', 'error')
         return redirect(url_for('auth.admin_users'))
         
     return render_template('user_form.html', is_edit=True, user=user)
@@ -190,10 +186,7 @@ def remove_user(user_id):
     user = get_user_by_id(user_id)
     
     # Prevent deletion of the currently logged-in admin
-    if user and user['username'] == session.get('username'):
-        flash('Action blocked! You cannot delete your own active account.', 'error')
-    else:
+    if not (user and user['username'] == session.get('username')):
         delete_user(user_id)
-        flash('User deleted successfully.', 'success')
         
     return redirect(url_for('auth.admin_users'))

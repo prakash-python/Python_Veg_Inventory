@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, session, redirect, url_for, jsonify
 from datetime import datetime
 
 from utils.helpers import login_required
@@ -98,7 +98,6 @@ def checkout():
     if request.method == 'POST':
         cart = session.get('cart', {})
         if not cart:
-            flash('Your cart is empty', 'error')
             return redirect(url_for('customer.customer_shop'))
 
         try:
@@ -119,16 +118,13 @@ def checkout():
 
             session['cart'] = {}
             session.modified = True
-            flash(f'🎉 Order placed! Thank you {name}. Total: ₹{total_amount:.2f}', 'success')
             return redirect(url_for('customer.customer_shop'))
 
         except Exception as e:
-            flash(f'Error processing order: {str(e)}', 'error')
             return redirect(url_for('customer.checkout'))
 
     cart = session.get('cart', {})
     if not cart:
-        flash('Cart is empty', 'warning')
         return redirect(url_for('customer.customer_shop'))
     
     return render_template('checkout.html', user_name=name, user_phone=phone)
