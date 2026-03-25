@@ -118,11 +118,11 @@
             <form method="POST">
                 <div class="form-grid">
                     <div class="field">
-                        <label>Full Name</label>
+                        <label>Full Name <span style="color:#dc2626;">*</span></label>
                         <input type="text" name="fullname" value="{{ user.fullname if user else '' }}" required>
                     </div>
                     <div class="field">
-                        <label>Username</label>
+                        <label>Username <span style="color:#dc2626;">*</span></label>
                         {% if is_edit %}
                         <input type="text" name="username" value="{{ user.username }}" disabled style="background:#f8fafc; color:#94a3b8; cursor:not-allowed;">
                         <p class="help">Usernames cannot be changed.</p>
@@ -131,11 +131,11 @@
                         {% endif %}
                     </div>
                     <div class="field">
-                        <label>Email Address</label>
+                        <label>Email Address <span style="color:#dc2626;">*</span></label>
                         <input type="email" name="email" value="{{ user.email if user else '' }}" required>
                     </div>
                     <div class="field">
-                        <label>Phone Number</label>
+                        <label>Phone Number <span style="color:#dc2626;">*</span></label>
                         <input type="tel" name="phone" value="{{ user.phone if user else '' }}" maxlength="10" required>
                     </div>
                     
