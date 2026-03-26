@@ -6,6 +6,16 @@ def get_user_by_username(username):
     conn.close()
     return user
 
+def get_user_by_identifier(identifier):
+    """Return a user whose username, email, or phone matches identifier."""
+    conn = get_db_connection()
+    user = conn.execute(
+        'SELECT * FROM users WHERE username=? OR email=? OR phone=?',
+        (identifier, identifier, identifier)
+    ).fetchone()
+    conn.close()
+    return user
+
 def get_user_by_id(user_id):
     conn = get_db_connection()
     user = conn.execute('SELECT id, username, email, password, fullname, phone, created_at FROM users WHERE id=?', (user_id,)).fetchone()

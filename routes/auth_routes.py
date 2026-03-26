@@ -5,8 +5,8 @@ from datetime import datetime
 
 from utils.helpers import login_required, admin_required
 from models.user import (
-    get_user_by_username, create_user, get_all_users, get_user_by_id,
-    update_user, delete_user, check_phone_exists
+    get_user_by_username, get_user_by_identifier, create_user, get_all_users,
+    get_user_by_id, update_user, delete_user, check_phone_exists
 )
 
 auth_bp = Blueprint('auth', __name__)
@@ -17,18 +17,19 @@ def login():
         role = request.form.get('role')
         
         if role == 'customer':
-            username = request.form.get('username')
+            identifier = request.form.get('identifier', '').strip()
             password = request.form.get('password')
-            
-            user = get_user_by_username(username)
-            
+
+            # Accept username, email, or phone number
+            user = get_user_by_identifier(identifier)
+
             if user and check_password_hash(user['password'], password):
                 session['user_type'] = 'customer'
                 session['username'] = user['username']
                 session['user_id'] = user['id']
                 return redirect(url_for('customer.customer_shop'))
             else:
-                return render_template('login.html', error='Invalid username or password')
+                return render_template('login.html', error='Invalid credentials. Please check your username / email / phone and password.')
         
         elif role == 'admin':
             username = request.form.get('username')
