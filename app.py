@@ -1,5 +1,5 @@
 from flask import Flask
-from config import SECRET_KEY, UPLOAD_FOLDER, MAX_CONTENT_LENGTH
+from config import SECRET_KEY, UPLOAD_FOLDER, MAX_CONTENT_LENGTH, PERMANENT_SESSION_LIFETIME
 import os
 
 from routes.auth_routes import auth_bp
@@ -16,6 +16,7 @@ app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+app.config['PERMANENT_SESSION_LIFETIME'] = PERMANENT_SESSION_LIFETIME
 
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 

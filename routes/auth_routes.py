@@ -13,6 +13,10 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # Already logged-in customers go straight to the shop
+    if request.method == 'GET' and session.get('user_type') == 'customer':
+        return redirect(url_for('customer.customer_shop'))
+
     if request.method == 'POST':
         role = request.form.get('role')
         
@@ -24,6 +28,8 @@ def login():
             user = get_user_by_identifier(identifier)
 
             if user and check_password_hash(user['password'], password):
+                remember_me = request.form.get('remember_me') == 'on'
+                session.permanent = remember_me
                 session['user_type'] = 'customer'
                 session['username'] = user['username']
                 session['user_id'] = user['id']
