@@ -70,34 +70,45 @@ def get_dashboard_profit_rows():
     conn.close()
     return profit_rows
 
-def get_all_sales(search=None, date=None, page=1, limit=2):
+def get_all_sales(search=None, date=None, page=1, limit=10):
     conn = get_db_connection()
     c = conn.cursor()
-    query = 'SELECT * FROM sales WHERE 1=1'
-    sum_query = 'SELECT SUM(total) FROM sales WHERE 1=1'
-    count_query = 'SELECT COUNT(*) FROM sales WHERE 1=1'
+    
+    base_query = '''
+    SELECT 
+        COALESCE(order_id, SUBSTR(date, 1, 16)) as grp,
+        GROUP_CONCAT(item_name || ' (' || quantity || 'kg)', ', ') as items,
+        SUM(quantity) as total_qty,
+        SUM(total) as order_total,
+        customer_name,
+        MAX(date) as max_date,
+        COUNT(id) as item_count
+    FROM sales
+    WHERE 1=1
+    '''
+    
     params = []
     
     if search:
         clause = ' AND (item_name LIKE ? OR customer_name LIKE ?)'
-        query += clause
-        sum_query += clause
-        count_query += clause
+        base_query += clause
         params += [f'%{search}%', f'%{search}%']
     if date:
         clause = ' AND date LIKE ?'
-        query += clause
-        sum_query += clause
-        count_query += clause
+        base_query += clause
         params.append(f'{date}%')
         
+    group_by = ' GROUP BY grp'
+    
+    sum_query = f'SELECT SUM(order_total) FROM ({base_query}{group_by})'
     c.execute(sum_query, params)
     total_sales = c.fetchone()[0] or 0
     
+    count_query = f'SELECT COUNT(*) FROM ({base_query}{group_by})'
     c.execute(count_query, params)
     total_count = c.fetchone()[0]
         
-    query += ' ORDER BY date DESC'
+    query = base_query + group_by + ' ORDER BY max_date DESC'
     if limit:
         query += ' LIMIT ? OFFSET ?'
         params.extend([limit, (page - 1) * limit])

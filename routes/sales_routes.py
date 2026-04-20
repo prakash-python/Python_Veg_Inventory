@@ -55,7 +55,7 @@ def admin_sales():
         page = request.args.get('page', 1, type=int)
         
     sales, total_sales, total_count = get_all_sales(search, date, page=page)
-    total_pages = math.ceil(total_count / 2) if total_count > 0 else 1
+    total_pages = math.ceil(total_count / 10) if total_count > 0 else 1
     
     return render_template('admin_sales.html', sales=sales, total_sales=total_sales,
                            search=search, date=date, page=page, total_pages=total_pages, total_count=total_count)

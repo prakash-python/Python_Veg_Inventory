@@ -148,7 +148,8 @@ def my_orders():
         date_str = row['date']
         order_id = row['order_id']
         
-        key = order_id if order_id else date_str
+        # for legacy items without order_id, group by minute to group items bought in the same checkout
+        key = order_id if order_id else date_str[:16]
         
         if key not in orders_dict:
             orders_dict[key] = {

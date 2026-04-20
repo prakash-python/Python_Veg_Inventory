@@ -176,10 +176,9 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Item</th>
-                                    <th>Qty</th>
-                                    <th>Price/kg</th>
-                                    <th>Total</th>
+                                    <th>Items</th>
+                                    <th>Total Qty</th>
+                                    <th>Order Total</th>
                                     <th>Customer</th>
                                     <th>Date</th>
                                 </tr>
@@ -188,13 +187,12 @@
                                 {% if sales %}
                                     {% for sale in sales %}
                                     <tr>
-                                        <td style="color:var(--text-muted);">{{ loop.index }}</td>
-                                        <td><strong>{{ sale[1]|upper }}</strong></td>
+                                        <td style="color:var(--text-muted);">{{ loop.index + (page - 1) * 10 }}</td>
+                                        <td><strong>{{ sale[1]|title }}</strong> {% if sale[6] > 1 %}<span style="font-size:11px;color:var(--text-muted);">({{ sale[6] }} items)</span>{% endif %}</td>
                                         <td><span class="badge badge-amber">{{ sale[2] }} kg</span></td>
-                                        <td>₹{{ sale[3] }}</td>
-                                        <td><span class="price-tag">₹{{ sale[4] }}</span></td>
-                                        <td>{{ sale[5] }}</td>
-                                        <td style="color:var(--text-muted);font-size:12.5px;">{{ (sale[6]|string)[:16] }}</td>
+                                        <td><span class="price-tag">₹{{ sale[3] }}</span></td>
+                                        <td>{{ sale[4] }}</td>
+                                        <td style="color:var(--text-muted);font-size:12.5px;">{{ (sale[5]|string)[:16] }}</td>
                                     </tr>
                                     {% endfor %}
                                 {% else %}
