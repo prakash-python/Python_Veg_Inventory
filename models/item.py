@@ -16,7 +16,7 @@ def get_featured_items(limit=6):
     conn.close()
     return items
 
-def get_all_items_admin(search=None, price_type='selling', price_range=None, date_created=None, page=1, limit=2):
+def get_all_items_admin(search=None, price_type='selling', price_range=None, date_created=None, page=1, limit=5):
     conn = get_db_connection()
     c = conn.cursor()
     query = 'SELECT * FROM items WHERE 1=1'

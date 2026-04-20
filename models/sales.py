@@ -70,7 +70,7 @@ def get_dashboard_profit_rows():
     conn.close()
     return profit_rows
 
-def get_all_sales(search=None, date=None, page=1, limit=10):
+def get_all_sales(search=None, date=None, page=1, limit=5):
     conn = get_db_connection()
     c = conn.cursor()
     

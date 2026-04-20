@@ -30,7 +30,7 @@ def create_user(username, email, hashed_password, fullname, phone, created_at):
     conn.commit()
     conn.close()
 
-def get_all_users(search=None, date_joined=None, page=1, limit=2):
+def get_all_users(search=None, date_joined=None, page=1, limit=5):
     conn = get_db_connection()
     c = conn.cursor()
     query = 'SELECT id, username, email, password, fullname, phone, created_at FROM users WHERE 1=1'

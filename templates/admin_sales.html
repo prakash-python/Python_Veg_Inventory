@@ -187,7 +187,7 @@
                                 {% if sales %}
                                     {% for sale in sales %}
                                     <tr>
-                                        <td style="color:var(--text-muted);">{{ loop.index + (page - 1) * 10 }}</td>
+                                        <td style="color:var(--text-muted);">{{ loop.index + (page - 1) * 5 }}</td>
                                         <td><strong>{{ sale[1]|title }}</strong> {% if sale[6] > 1 %}<span style="font-size:11px;color:var(--text-muted);">({{ sale[6] }} items)</span>{% endif %}</td>
                                         <td><span class="badge badge-amber">{{ sale[2] }} kg</span></td>
                                         <td><span class="price-tag">₹{{ sale[3] }}</span></td>
